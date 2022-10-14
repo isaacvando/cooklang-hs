@@ -1,0 +1,64 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
+
+name:           cooklang-hs
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/isaacvando/cooklang-hs#readme>
+homepage:       https://github.com/isaacvando/cooklang-hs#readme
+bug-reports:    https://github.com/isaacvando/cooklang-hs/issues
+author:         Isaac Van Doren
+maintainer:     isaacjvandoren@gmail.com
+copyright:      Isaac Van Doren
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    CHANGELOG.md
+
+source-repository head
+  type: git
+  location: https://github.com/isaacvando/cooklang-hs
+
+library
+  exposed-modules:
+      Lib
+  other-modules:
+      Paths_cooklang_hs
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  build-depends:
+      base >=4.7 && <5
+    , megaparsec
+  default-language: Haskell2010
+
+executable cooklang-hs-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_cooklang_hs
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , cooklang-hs
+    , megaparsec
+  default-language: Haskell2010
+
+test-suite cooklang-hs-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_cooklang_hs
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , cooklang-hs
+    , megaparsec
+  default-language: Haskell2010
