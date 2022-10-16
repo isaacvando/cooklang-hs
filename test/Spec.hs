@@ -1,2 +1,8 @@
+import Test.Hspec
+import Cook
+
 main :: IO ()
-main = putStrLn "Test suite not yet implemented"
+main = hspec $ do
+    describe "Cook" $ do 
+        it "returns foo" $ do
+            parseCook "foo" `shouldBe` Right "foo"

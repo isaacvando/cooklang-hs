@@ -25,7 +25,7 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
+      Cook
   other-modules:
       Paths_cooklang_hs
   hs-source-dirs:
@@ -33,6 +33,7 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       base >=4.7 && <5
+    , hspec
     , megaparsec
   default-language: Haskell2010
 
@@ -46,6 +47,7 @@ executable cooklang-hs-exe
   build-depends:
       base >=4.7 && <5
     , cooklang-hs
+    , hspec
     , megaparsec
   default-language: Haskell2010
 
@@ -60,5 +62,6 @@ test-suite cooklang-hs-test
   build-depends:
       base >=4.7 && <5
     , cooklang-hs
+    , hspec
     , megaparsec
   default-language: Haskell2010

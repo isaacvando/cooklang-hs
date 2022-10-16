@@ -1,17 +1,20 @@
-module Lib ( parseCook ) where
+module Cook ( parseCook, Recipe ) where
 
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import Data.Void
--- import qualified Data.Text as T
 
 type Parser = Parsec Void String
 
-parseCook :: String -> Either String String
+type Metadata = [(String, String)]
+data Recipe = Recipe Metadata
+    deriving Show
+
+parseCook :: String -> Either String Recipe
 parseCook input = case parse cookFile "" input of
     Left bundle ->  Left $ errorBundlePretty bundle
     Right result -> Right result
 
 
-cookFile :: Parser String
-cookFile = string "foo"
+cookFile :: Parser Recipe
+cookFile = return $ Recipe []
