@@ -20,8 +20,13 @@ parseCook input = case parse cookFile "" input of
 
 cookFile :: Parser Recipe
 cookFile = do
-    ms <- some $ metadata <* (optional $ char '\n')
-    return $ Recipe ms []
+    -- ms <- some $ metadata <* (optional $ char '\n')
+    content <- some $ try (fmap Left (metadata <* (optional $ char '\n'))) <|> (fmap Right (step <* (optional $ char '\n')))
+    return $ foldr makeRecipe (Recipe [] []) content
+        where
+            makeRecipe (Left x) (Recipe m s) = Recipe (x:m) s
+            makeRecipe (Right x) (Recipe m s) = Recipe m (x:s)
+
 
 metadata :: Parser Metadata
 metadata = do 
