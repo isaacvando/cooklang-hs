@@ -19,4 +19,26 @@ main = hspec $ do
         
         describe "step" $ do
             it "basic step" $ do
-                parseCook "this is a step" `shouldBe` (Right $ Recipe [] ["this is a step"])
+                parseCook "this is a step" `shouldBe` (Right $ Recipe [] [[("this is a step", Empty)]])
+
+            it "step beginning with >" $ do
+                parseCook "> sneaky step" `shouldBe` (Right $ Recipe [] [[("> sneaky step", Empty)]])
+            
+            it "step beginning with >>>" $ do
+                parseCook ">>> sneaky step" `shouldBe` (Right $ Recipe [] [[(">>> sneaky step", Empty)]])
+
+            it "extra spaces" $ do
+                parseCook "    this    is    a step  " `shouldBe` (Right $ Recipe [] [[("this is a step", Empty)]])
+
+            it "extra tabs and spaces" $ do
+                parseCook "\tthis  \t  is    \t\ta step  " `shouldBe` (Right $ Recipe [] [[("this is a step", Empty)]])
+
+            it "two steps" $ do 
+                parseCook "step one\nstep two" `shouldBe` (Right $ Recipe [] [[("step one", Empty)], [("step two", Empty)]])
+
+        describe "general" $ do
+            it "empty input" $ do
+                parseCook "" `shouldBe` (Right $ Recipe [] [])
+            it "step and metadata" $ do
+                parseCook "step one\n>> key: value" `shouldBe` (Right $ Recipe [("key","value")] [[("step one", Empty)]])
+
