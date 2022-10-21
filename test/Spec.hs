@@ -36,6 +36,10 @@ main = hspec $ do
             it "two steps" $ do 
                 parseCook "step one\nstep two" `shouldBe` (Right $ Recipe [] [[("step one", Empty)], [("step two", Empty)]])
 
+            describe "annotations" $ do
+                it "basic ingredient" $ do
+                    parseCook "add @apples" `shouldBe` (Right $ Recipe [] [[("add", Empty), ("apples", Ingredient Nothing)]])
+
         describe "general" $ do
             it "empty input" $ do
                 parseCook "" `shouldBe` (Right $ Recipe [] [])

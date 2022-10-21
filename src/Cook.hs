@@ -10,7 +10,7 @@ type Parser = Parsec Void String
 
 type Metadata = (String, String)
 type Step = [(String, Annotation)]
-data Annotation = Empty | Ingredient String | Timer String | Cookware String
+data Annotation = Empty | Ingredient (Maybe String) | Timer String | Cookware String
     deriving (Show, Eq)
 data Recipe = Recipe [Metadata] [Step]
     deriving (Show, Eq)
@@ -23,7 +23,6 @@ parseCook input = case parse cookFile "" input of
 
 cookFile :: Parser Recipe
 cookFile = do
-    -- ms <- some $ metadata <* (optional $ char '\n')
     content <- many $ try (fmap Left (metadata <* (optional $ char '\n'))) <|> (fmap Right (step <* (optional $ char '\n')))
     return $ foldr makeRecipe (Recipe [] []) content
         where
@@ -41,9 +40,31 @@ metadata = do
 
 step :: Parser Step
 step = do
-    value <- sentence
-    return $ [(value, Empty)]
+    content <- some (hspace >> (ingredient <|> stepWord) <* hspace)
+    return $ foldr f [] content
+        where 
+            f val [] = [val]
+            f (st1, Empty) ((st2, Empty):acc) = (st1 ++ " " ++ st2, Empty):acc
+            f val acc = val:acc
+
+
+ingredient :: Parser (String, Annotation)
+ingredient = do 
+    void $ char '@'
+    val <- word
+    return (val, Ingredient Nothing)
+
+stepWord :: Parser (String, Annotation)
+stepWord = do
+    val <- word
+    return (val, Empty)
+    
+    
+        
 
 -- sentence insensitive to horizontal space
 sentence :: Parser String
 sentence = fmap unwords (hspace >> (some $ (some $ noneOf " \t\n") <* hspace))
+
+word :: Parser String
+word = some $ noneOf " \t\n"
