@@ -32,7 +32,11 @@ cookFile :: Parser Recipe
 cookFile = fmap mconcat (many $ (try comment <|> try metadata <|> step) <* (optional $ char '\n'))
 
 comment :: Parser Recipe
-comment = hspace *> string "--" *> many $ noneOf "\n" *> mempty
+comment = do
+    hspace 
+    void $ string "--" 
+    void $ many $ noneOf "\n"
+    return mempty
 
 metadata :: Parser Recipe
 metadata = do 
