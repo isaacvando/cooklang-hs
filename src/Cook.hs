@@ -14,6 +14,14 @@ data Annotation = Empty | Ingredient (Maybe String) | Timer String | Cookware St
 data Recipe = Recipe [Metadata] [Step]
     deriving (Show, Eq)
 
+instance Semigroup Recipe where
+    (Recipe m s) <> (Recipe m' s') = Recipe (m ++ m') (s ++ s')
+
+instance Monoid Recipe where
+    mempty = Recipe [] []
+    
+
+
 
 parseCook :: String -> Either String Recipe
 parseCook input = case parse cookFile "" input of
@@ -21,26 +29,24 @@ parseCook input = case parse cookFile "" input of
     Right result -> Right result
 
 cookFile :: Parser Recipe
-cookFile = do
-    content <- many $ try (fmap Left (metadata <* (optional $ char '\n'))) <|> (fmap Right (step <* (optional $ char '\n')))
-    return $ foldr makeRecipe (Recipe [] []) content
-        where
-            makeRecipe (Left x) (Recipe m s) = Recipe (x:m) s
-            makeRecipe (Right x) (Recipe m s) = Recipe m (x:s)
+cookFile = fmap mconcat (many $ (try comment <|> try metadata <|> step) <* (optional $ char '\n'))
 
-metadata :: Parser Metadata
+comment :: Parser Recipe
+comment = hspace *> string "--" *> many $ noneOf "\n" *> mempty
+
+metadata :: Parser Recipe
 metadata = do 
     void $ string ">>"
     hspace
     key <- some $ noneOf " \t:"
     void $ char ':'
     value <- sentence
-    return (key, value)
+    return $ Recipe [(key, value)] []
 
-step :: Parser Step
+step :: Parser Recipe
 step = do
-    content <- some (hspace >> (ingredient <|> stepWord) <* hspace)
-    return $ foldr f [] content
+    content <- some (hspace *> (ingredient <|> stepWord) <* hspace)
+    return $ Recipe [] [foldr f [] content]
         where 
             f val [] = [val]
             f (st1, Empty) ((st2, Empty):acc) = (st1 ++ " " ++ st2, Empty):acc
@@ -51,15 +57,15 @@ step = do
     --     <|> (char '@' >> word)
 ingredient :: Parser (String, Annotation)
 ingredient =  try (do
-        char '@'
+        void $ char '@'
         hspace
         content <- some ((some $ noneOf " \t\n{") <* hspace)
-        char '{'
+        void $ char '{'
         ing <- many ((some $ noneOf " \t\n}") <* hspace)
-        char '}'
+        void $ char '}'
         return (unwords content, Ingredient (if null ing then Nothing else Just $ unwords ing)))
         <|> (do
-        char '@'
+        void $ char '@'
         content <- word
         return (content, Ingredient Nothing))
 

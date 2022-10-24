@@ -52,6 +52,10 @@ main = hspec $ do
                 it "ingredient with quantity" $ do
                     parseCook "@honey crisp apples {a million}" `shouldBe` (Right $ Recipe [] [[("honey crisp apples", Ingredient $ Just "a million")]])
 
+        describe "comments" $ do
+            it "single line comment" $ do
+                parseCook "-- this is a comment" `shouldBe` (Right $ Recipe [] [])
+
         describe "general" $ do
             it "empty input" $ do
                 parseCook "" `shouldBe` (Right $ Recipe [] [])
