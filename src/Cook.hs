@@ -1,4 +1,3 @@
--- module Cook ( parseCook, Recipe(..) ) where
 module Cook where
 
 import Text.Megaparsec
@@ -50,8 +49,8 @@ step = do
 
 ingredient :: Parser (String, Annotation)
 ingredient = do 
-    void $ char '@'
-    val <- word
+    -- val <- try (fmap concat (char '@' >> hspace >> some (word <* hspace) <* string "{}")) <|> (char '@' >> word)
+    val <- try (fmap unwords (char '@' >> hspace >> some ((some $ noneOf " \t\n{") <* hspace) <* string "{}")) <|> (char '@' >> word)
     return (val, Ingredient Nothing)
 
 stepWord :: Parser (String, Annotation)

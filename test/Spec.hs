@@ -40,6 +40,12 @@ main = hspec $ do
                 it "basic ingredient" $ do
                     parseCook "add @apples" `shouldBe` (Right $ Recipe [] [[("add", Empty), ("apples", Ingredient Nothing)]])
 
+                it "ingredient with longer sentence" $ do
+                    parseCook "add lots of delicious @apples" `shouldBe` (Right $ Recipe [] [[("add lots of delicious", Empty), ("apples", Ingredient Nothing)]])
+                
+                it "multi word ingredient" $ do
+                    parseCook "@honey crisp apples{}" `shouldBe` (Right $ Recipe [] [[("honey crisp apples", Ingredient Nothing)]])
+
         describe "general" $ do
             it "empty input" $ do
                 parseCook "" `shouldBe` (Right $ Recipe [] [])
