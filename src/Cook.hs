@@ -47,19 +47,26 @@ step = do
             f val acc = val:acc
 
 
+  -- val <- try (fmap unwords (char '@' >> hspace >> some ((some $ noneOf " \t\n{") <* hspace) <* string "{}")) 
+    --     <|> (char '@' >> word)
 ingredient :: Parser (String, Annotation)
-ingredient = do 
-    -- val <- try (fmap concat (char '@' >> hspace >> some (word <* hspace) <* string "{}")) <|> (char '@' >> word)
-    val <- try (fmap unwords (char '@' >> hspace >> some ((some $ noneOf " \t\n{") <* hspace) <* string "{}")) <|> (char '@' >> word)
-    return (val, Ingredient Nothing)
+ingredient =  try (do
+        char '@'
+        hspace
+        content <- some ((some $ noneOf " \t\n{") <* hspace)
+        char '{'
+        ing <- many ((some $ noneOf " \t\n}") <* hspace)
+        char '}'
+        return (unwords content, Ingredient (if null ing then Nothing else Just $ unwords ing)))
+        <|> (do
+        char '@'
+        content <- word
+        return (content, Ingredient Nothing))
 
 stepWord :: Parser (String, Annotation)
 stepWord = do
     val <- word
-    return (val, Empty)
-    
-    
-        
+    return (val, Empty) 
 
 -- sentence insensitive to horizontal space
 sentence :: Parser String

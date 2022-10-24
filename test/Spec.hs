@@ -46,6 +46,12 @@ main = hspec $ do
                 it "multi word ingredient" $ do
                     parseCook "@honey crisp apples{}" `shouldBe` (Right $ Recipe [] [[("honey crisp apples", Ingredient Nothing)]])
 
+                it "extra spacing" $ do
+                    parseCook "@  \thoney \t crisp\tapples    {}" `shouldBe` (Right $ Recipe [] [[("honey crisp apples", Ingredient Nothing)]])
+                
+                it "ingredient with quantity" $ do
+                    parseCook "@honey crisp apples {a million}" `shouldBe` (Right $ Recipe [] [[("honey crisp apples", Ingredient $ Just "a million")]])
+
         describe "general" $ do
             it "empty input" $ do
                 parseCook "" `shouldBe` (Right $ Recipe [] [])

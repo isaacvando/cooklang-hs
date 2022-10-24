@@ -30,6 +30,8 @@ library
       Paths_cooklang_hs
   hs-source-dirs:
       src
+  default-extensions:
+      TupleSections
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       base >=4.7 && <5
@@ -43,6 +45,8 @@ executable cooklang-hs-exe
       Paths_cooklang_hs
   hs-source-dirs:
       app
+  default-extensions:
+      TupleSections
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
@@ -58,6 +62,8 @@ test-suite cooklang-hs-test
       Paths_cooklang_hs
   hs-source-dirs:
       test
+  default-extensions:
+      TupleSections
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
