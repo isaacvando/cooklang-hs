@@ -56,6 +56,15 @@ main = hspec $ do
             it "single line comment" $ do
                 parseCook "-- this is a comment" `shouldBe` (Right $ Recipe [] [])
 
+            it "block comment" $ do
+                parseCook "[- single line block comment -]" `shouldBe` (Right $ Recipe [] [])
+
+            it "multi line block comment" $ do
+                parseCook "[- multi line \n block \n comment \n-]" `shouldBe` (Right $ Recipe [] [])
+
+            it "block comment containing a - and ]" $ do
+                parseCook "[- this ] is just - a comment ] with -]" `shouldBe` (Right $ Recipe [] [])
+
         describe "general" $ do
             it "empty input" $ do
                 parseCook "" `shouldBe` (Right $ Recipe [] [])
