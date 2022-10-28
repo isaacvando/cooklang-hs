@@ -6,7 +6,6 @@ import Data.Void
 import Control.Monad (void)
 
 type Parser = Parsec Void String
-
 type Metadata = (String, String)
 type Step = [(String, Annotation)]
 data Annotation = Empty | Ingredient (Maybe String) | Timer String | Cookware String
@@ -16,12 +15,9 @@ data Recipe = Recipe [Metadata] [Step]
 
 instance Semigroup Recipe where
     (Recipe m s) <> (Recipe m' s') = Recipe (m ++ m') (s ++ s')
-
 instance Monoid Recipe where
     mempty = Recipe [] []
     
-
-
 
 parseCook :: String -> Either String Recipe
 parseCook input = case parse cookFile "" input of
@@ -43,7 +39,7 @@ blockComment :: Parser ()
 blockComment = do
     hspace
     void $ string "[-"
-    void $ (many (try (char '-' <* noneOf "]") <|> noneOf "-"))
+    void $ (many (try (char '-' <* notFollowedBy (char ']')) <|> noneOf "-"))
     void $ string "-]"
     hspace
     return ()
@@ -54,43 +50,32 @@ metadata = do
     hspace
     key <- some $ noneOf " \t:"
     void $ char ':'
-    value <- sentence
-    return $ Recipe [(key, value)] []
+    hspace
+    value <- some $ word <* hspace <* (optional comment)
+    return $ Recipe [(key, unwords value)] []
 
 step :: Parser Recipe
 step = do
-    content <- some (hspace *> (ingredient <|> stepWord) <* hspace)
+    content <- some (hspace *> (ingredient <|> fmap (,Empty) word) <* hspace <* (optional comment))
     return $ Recipe [] [foldr f [] content]
         where 
             f val [] = [val]
             f (st1, Empty) ((st2, Empty):acc) = (st1 ++ " " ++ st2, Empty):acc
             f val acc = val:acc
 
-
-  -- val <- try (fmap unwords (char '@' >> hspace >> some ((some $ noneOf " \t\n{") <* hspace) <* string "{}")) 
-    --     <|> (char '@' >> word)
 ingredient :: Parser (String, Annotation)
 ingredient =  try (do
-        void $ char '@'
-        hspace
-        content <- some ((some $ noneOf " \t\n{") <* hspace)
-        void $ char '{'
-        ing <- many ((some $ noneOf " \t\n}") <* hspace)
-        void $ char '}'
-        return (unwords content, Ingredient (if null ing then Nothing else Just $ unwords ing)))
-        <|> (do
-        void $ char '@'
-        content <- word
-        return (content, Ingredient Nothing))
-
-stepWord :: Parser (String, Annotation)
-stepWord = do
-    val <- word
-    return (val, Empty) 
-
--- sentence insensitive to horizontal space
-sentence :: Parser String
-sentence = fmap unwords (hspace >> (some $ (some $ noneOf " \t\n") <* hspace))
+    void $ char '@'
+    hspace
+    content <- some ((some $ noneOf " \t\n{") <* hspace)
+    void $ char '{'
+    ing <- many ((some $ noneOf " \t\n}") <* hspace)
+    void $ char '}'
+    return (unwords content, Ingredient (if null ing then Nothing else Just $ unwords ing)))
+    <|> (do
+    void $ char '@'
+    content <- word
+    return (content, Ingredient Nothing))
 
 word :: Parser String
 word = some $ noneOf " \t\n"

@@ -65,6 +65,27 @@ main = hspec $ do
             it "block comment containing a - and ]" $ do
                 parseCook "[- this ] is just - a comment ] with -]" `shouldBe` (Right $ Recipe [] [])
 
+            it "block comment containing - adjacent to end" $ do 
+                parseCook "[-- comment --]" `shouldBe` (Right $ Recipe [] [])
+
+            it "step followed by inline comment" $ do
+                parseCook "i'm a step -- i'm a comment" `shouldBe` (Right $ Recipe [] [[("i'm a step", Empty)]])
+
+            it "step, inline comment, step" $ do
+                parseCook "i'm a step -- i'm a comment\nI'm another step" `shouldBe` (Right $ Recipe [] [[("i'm a step", Empty)], [("I'm another step", Empty)]])
+
+            it "ingredient followed by inline comment" $ do
+                parseCook "@cayenne pepper{} -- i'm a comment" `shouldBe` (Right $ Recipe [] [[("cayenne pepper", Ingredient Nothing)]])
+
+            it "step followed by block comment" $ do
+                parseCook "i'm a step [- i'm a comment -]" `shouldBe` (Right $ Recipe [] [[("i'm a step", Empty)]])
+            
+            it "metadata followed by inline comment" $ do
+                parseCook ">> key: value -- i'm a comment" `shouldBe` (Right $ Recipe [("key","value")] [])
+
+            it "metadata followed by block comment" $ do
+                parseCook ">> key: value [-i'm a comment-]" `shouldBe` (Right $ Recipe [("key","value")] [])
+
         describe "general" $ do
             it "empty input" $ do
                 parseCook "" `shouldBe` (Right $ Recipe [] [])
