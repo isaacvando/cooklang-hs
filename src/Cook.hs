@@ -56,7 +56,7 @@ metadata = do
 
 step :: Parser Recipe
 step = do
-    content <- some (hspace *> (ingredient <|> fmap (,Empty) word) <* hspace <* (optional comment))
+    content <- some (hspace *> (ingredient <|> cookware <|> timer <|> fmap (,Empty) word) <* hspace <* (optional comment))
     return $ Recipe [] [foldr f [] content]
         where 
             f val [] = [val]
@@ -76,6 +76,25 @@ ingredient =  try (do
     void $ char '@'
     content <- word
     return (content, Ingredient Nothing))
+
+cookware :: Parser (String, Annotation)
+cookware = char '#' *> hspace *> 
+    (try (do 
+    content <- some ((some $ noneOf " \t\n{") <* hspace)
+    void $ char '{' *> many (noneOf "\n}") *> char '}'
+    return (unwords content, Cookware $ unwords content))
+    <|> (do
+    content <- word
+    return (content, Cookware content)))
+
+timer :: Parser (String, Annotation)
+timer = do
+    void $ char '~'
+    timerLabel <- many ((some $ noneOf " \t\n{") <* hspace)
+    void $ char '{'
+    time <- some ((some $ noneOf " \t\n}") <* hspace)
+    void $ char '}'
+    return (unwords time, Timer $ unwords timerLabel)
 
 word :: Parser String
 word = some $ noneOf " \t\n"

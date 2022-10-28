@@ -36,7 +36,7 @@ main = hspec $ do
             it "two steps" $ do 
                 parseCook "step one\nstep two" `shouldBe` (Right $ Recipe [] [[("step one", Empty)], [("step two", Empty)]])
 
-            describe "annotations" $ do
+            describe "ingredient" $ do
                 it "basic ingredient" $ do
                     parseCook "add @apples" `shouldBe` (Right $ Recipe [] [[("add", Empty), ("apples", Ingredient Nothing)]])
 
@@ -51,6 +51,23 @@ main = hspec $ do
                 
                 it "ingredient with quantity" $ do
                     parseCook "@honey crisp apples {a million}" `shouldBe` (Right $ Recipe [] [[("honey crisp apples", Ingredient $ Just "a million")]])
+
+            describe "cookware" $ do
+                it "basic cookware" $ do
+                    parseCook "#pot" `shouldBe` (Right $ Recipe [] [[("pot", Cookware "pot")]])
+
+                it "multiword cookware" $ do
+                    parseCook "#stock pot{}" `shouldBe` (Right $ Recipe [] [[("stock pot", Cookware "stock pot")]])
+                
+                it "multiword cookware with ingredient" $ do
+                    parseCook "# cast iron skillet {blazing hot}" `shouldBe` (Right $ Recipe [] [[("cast iron skillet", Cookware "cast iron skillet")]])
+
+            describe "timer" $ do
+                it "basic timer" $ do
+                    parseCook "~{10 minutes}" `shouldBe` (Right $ Recipe [] [[("10 minutes", Timer "")]])
+
+                it "timer with label" $ do
+                    parseCook "~stewed apples {10 minutes}" `shouldBe` (Right $ Recipe [] [[("10 minutes", Timer "stewed apples")]])
 
         describe "comments" $ do
             it "single line comment" $ do
