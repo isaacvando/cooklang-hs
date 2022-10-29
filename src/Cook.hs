@@ -8,7 +8,7 @@ import Control.Monad (void)
 type Parser = Parsec Void String
 type Metadata = (String, String)
 type Step = [(String, Annotation)]
-data Annotation = Empty | Ingredient (Maybe String) | Timer String | Cookware String
+data Annotation = Text | Ingredient (Maybe (String, Maybe String)) | Timer String | Cookware String
     deriving (Show, Eq)
 data Recipe = Recipe [Metadata] [Step]
     deriving (Show, Eq)
@@ -29,7 +29,8 @@ cookFile = fmap mconcat (many $ (try comment <|> try metadata <|> step) <* (opti
 
 comment :: Parser Recipe
 comment = do
-    singleComment <|> blockComment <?> "comment"
+    _ <- string "--" *> many (noneOf "\n")
+        <|> string "[-" *> many (try (char '-' <* notFollowedBy (char ']')) <|> noneOf "-") *>  string "-]"
     return mempty
 
 singleComment :: Parser ()
@@ -51,27 +52,27 @@ metadata = do
     key <- some $ noneOf " \t:"
     void $ char ':'
     hspace
-    value <- some $ word <* hspace <* (optional comment)
+    value <- some $ word <* hspace <* optional comment
     return $ Recipe [(key, unwords value)] []
 
 step :: Parser Recipe
 step = do
-    content <- some (hspace *> (ingredient <|> cookware <|> timer <|> fmap (,Empty) word) <* hspace <* (optional comment))
+    content <- some (hspace *> (ingredient <|> cookware <|> timer <|> fmap (,Text) word) <* hspace <* (optional comment))
     return $ Recipe [] [foldr f [] content]
         where 
             f val [] = [val]
-            f (st1, Empty) ((st2, Empty):acc) = (st1 ++ " " ++ st2, Empty):acc
+            f (st1, Text) ((st2, Text):acc) = (st1 ++ " " ++ st2, Text):acc
             f val acc = val:acc
 
 ingredient :: Parser (String, Annotation)
 ingredient =  try (do
     void $ char '@'
     hspace
-    content <- some ((some $ noneOf " \t\n{") <* hspace)
+    content <- some $ noneOf "\n{"
     void $ char '{'
-    ing <- many ((some $ noneOf " \t\n}") <* hspace)
+    ing <- many $ noneOf "\n}"
     void $ char '}'
-    return (unwords content, Ingredient (if null ing then Nothing else Just $ unwords ing)))
+    return (norm content, Ingredient (if null ing then Nothing else Just $ (norm ing, Nothing))))
     <|> (do
     void $ char '@'
     content <- word
@@ -80,9 +81,9 @@ ingredient =  try (do
 cookware :: Parser (String, Annotation)
 cookware = char '#' *> hspace *> 
     (try (do 
-    content <- some ((some $ noneOf " \t\n{") <* hspace)
+    content <- some $ noneOf "\n{"
     void $ char '{' *> many (noneOf "\n}") *> char '}'
-    return (unwords content, Cookware $ unwords content))
+    return (norm content, Cookware $ norm content))
     <|> (do
     content <- word
     return (content, Cookware content)))
@@ -90,11 +91,17 @@ cookware = char '#' *> hspace *>
 timer :: Parser (String, Annotation)
 timer = do
     void $ char '~'
-    timerLabel <- many ((some $ noneOf " \t\n{") <* hspace)
+    -- timerLabel <- many ((some $ noneOf " \t\n{") <* hspace)
+    timerLabel <- many $ noneOf "\n{"
     void $ char '{'
-    time <- some ((some $ noneOf " \t\n}") <* hspace)
+    -- time <- some ((some $ noneOf " \t\n}") <* hspace)
+    time <- some $ noneOf "}\n"
     void $ char '}'
-    return (unwords time, Timer $ unwords timerLabel)
+    return (norm time, Timer $ norm timerLabel)
 
 word :: Parser String
 word = some $ noneOf " \t\n"
+
+-- removes extra whitespace
+norm :: String -> String
+norm = unwords . words
