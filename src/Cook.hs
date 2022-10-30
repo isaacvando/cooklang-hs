@@ -8,7 +8,7 @@ import Control.Monad (void)
 type Parser = Parsec Void String
 type Metadata = (String, String)
 type Step = [(String, Annotation)]
-data Annotation = Text | Ingredient (Maybe (String, Maybe String)) | Timer String | Cookware String
+data Annotation = Text | Ingredient (Maybe (String, Maybe String)) | Timer (String, Maybe String) (Maybe String) | Cookware String
     deriving (Show, Eq)
 data Recipe = Recipe [Metadata] [Step]
     deriving (Show, Eq)
@@ -70,9 +70,11 @@ ingredient =  try (do
     hspace
     content <- some $ noneOf "\n{"
     void $ char '{'
-    ing <- many $ noneOf "\n}"
+    -- ing <- many $ noneOf "\n}"
+    q <- quantity
     void $ char '}'
-    return (norm content, Ingredient (if null ing then Nothing else Just $ (norm ing, Nothing))))
+    return (norm content, Ingredient q))
+    -- return (norm content, Ingredient (if null ing then Nothing else Just $ (norm ing, Nothing))))
     <|> (do
     void $ char '@'
     content <- word
@@ -91,13 +93,21 @@ cookware = char '#' *> hspace *>
 timer :: Parser (String, Annotation)
 timer = do
     void $ char '~'
-    -- timerLabel <- many ((some $ noneOf " \t\n{") <* hspace)
     timerLabel <- many $ noneOf "\n{"
     void $ char '{'
-    -- time <- some ((some $ noneOf " \t\n}") <* hspace)
-    time <- some $ noneOf "}\n"
+    q <- quantity
     void $ char '}'
-    return (norm time, Timer $ norm timerLabel)
+    case q of
+        Nothing -> return ("", Timer ("", Nothing) (Just $ norm timerLabel))
+        Just (amount, Just unit) -> return (amount ++ " " ++ unit, Timer (amount, Just unit) (Just $ norm timerLabel))
+        Just (amount, Nothing) -> return (amount, Timer (amount, Nothing) (Just $ norm timerLabel))
+
+quantity :: Parser (Maybe (String, Maybe String))
+quantity = do
+    amount <- many $ noneOf "\n%}"
+    void $ optional (char '%')
+    unit <- many $ noneOf "\n}"
+    return $ if null amount then Nothing else Just (norm amount, if null unit then Nothing else Just $ norm unit)
 
 word :: Parser String
 word = some $ noneOf " \t\n"

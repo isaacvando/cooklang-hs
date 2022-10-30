@@ -52,6 +52,15 @@ main = hspec $ do
                 it "ingredient with quantity" $ do
                     parseCook "@honey crisp apples {a million}" `shouldBe` (Right $ Recipe [] [[("honey crisp apples", Ingredient $ Just ("a million", Nothing))]])
 
+                it "ingredient with quantity and unit" $ do 
+                    parseCook "@chives {10 % bushels}" `shouldBe` (Right $ Recipe [] [[("chives", Ingredient $ Just ("10", Just "bushels"))]])
+                
+                it "ingredient with quantity and unit and no spaces" $ do 
+                    parseCook "@eggs{0.98%oz}" `shouldBe` (Right $ Recipe [] [[("eggs", Ingredient $ Just ("0.98", Just "oz"))]])
+
+                it "ingredient with a unit but no amount" $ do 
+                    parseCook "@dry aged carrots{%lbs}" `shouldBe` (Right $ Recipe [] [[("dry aged carrots", Ingredient Nothing)]])
+
             describe "cookware" $ do
                 it "basic cookware" $ do
                     parseCook "#pot" `shouldBe` (Right $ Recipe [] [[("pot", Cookware "pot")]])
@@ -64,10 +73,13 @@ main = hspec $ do
 
             describe "timer" $ do
                 it "basic timer" $ do
-                    parseCook "~{10 minutes}" `shouldBe` (Right $ Recipe [] [[("10 minutes", Timer "")]])
+                    parseCook "~{10 minutes}" `shouldBe` (Right $ Recipe [] [[("10 minutes", Timer ("10 minutes",Nothing) (Just ""))]])
 
                 it "timer with label" $ do
-                    parseCook "~stewed apples {10 minutes}" `shouldBe` (Right $ Recipe [] [[("10 minutes", Timer "stewed apples")]])
+                    parseCook "~stewed apples {10 minutes}" `shouldBe` (Right $ Recipe [] [[("10 minutes", Timer ("10 minutes", Nothing) (Just "stewed apples"))]])
+
+                it "timer with amount and unit" $ do 
+                    parseCook "~grapefruit{2%hours}" `shouldBe` (Right $ Recipe [] [[("2 hours", Timer ("2", Just "hours") (Just "grapefruit"))]])
 
         describe "comments" $ do
             it "single line comment" $ do
@@ -109,6 +121,7 @@ main = hspec $ do
         describe "general" $ do
             it "empty input" $ do
                 parseCook "" `shouldBe` (Right $ Recipe [] [])
+
             it "step and metadata" $ do
                 parseCook "step one\n>> key: value" `shouldBe` (Right $ Recipe [("key","value")] [[("step one", Text)]])
 
