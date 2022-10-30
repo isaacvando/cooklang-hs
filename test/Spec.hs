@@ -122,3 +122,36 @@ main = hspec $ do
             it "step and metadata" $ do
                 parseCook "step one\n>> key: value" `shouldBe` (Right $ Recipe [("key","value")] [[Text "step one"]])
 
+
+            let fullRecipeText = unlines [   
+                    "-- this recipe is delicious!",
+                    "[- spinach is optional but a good addition -]",
+                    ">> source: https://isaacvando.com",
+                    ">> time: 1 hr 20 min",
+                    ">> title: Grandma's Quiche",
+                    "\n",
+                    "Preheat the #oven to 325 degrees.",
+                    "In a medium bowl, mix the @eggs{3}, @sour cream{1/2%cup}, @shredded cheese{1/3%cup}, @crushed french fried onions{1/3%cup}, and @chopped spinach{}.",
+                    "Mix ingredients thoroughly and add to the @pie crust{1}.",
+                    "\t\t\t\t\n\n\n",
+                    "Bake for an ~{hour} or until the top is nicely brown and a toothpick comes out clean.",
+                    "Serve with @fruit and enjoy!",
+                    "\n\n",
+                    "[- the",
+                    "end -]"
+                    ]
+
+            let fullRecipe = Recipe [("source", "https://isaacvando.com"), ("time", "1 hr 20 min"), ("title", "Grandma's Quiche")] 
+                        [[Text "Preheat the", Cookware "oven", Text "to 325 degrees."]
+                        , [Text "In a medium bowl, mix the", Ingredient "eggs" "3" "", Text ",", Ingredient "sour cream" "1/2" "cup",
+                            Text ",", Ingredient "shredded cheese" "1/3" "cup", Text ",", Ingredient "crushed french fried onions" "1/3" "cup",
+                            Text ", and", Ingredient "chopped spinach" "" "", Text "."]
+                        , [Text "Mix ingredients thoroughly and add to the", Ingredient "pie crust" "1" "", Text "."]
+                        , [Text "Bake for an", Timer "" "hour" "", Text "or until the top is nicely brown and a toothpick comes out clean."]
+                        , [Text "Serve with", Ingredient "fruit" "" "", Text "and enjoy!"]]
+
+            it "full recipe" $ do
+                parseCook fullRecipeText `shouldBe` (Right fullRecipe)
+
+                
+

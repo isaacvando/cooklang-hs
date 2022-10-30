@@ -25,7 +25,7 @@ parseCook input = case parse cookFile "" input of
     Right result -> Right result
 
 cookFile :: Parser Recipe
-cookFile = fmap mconcat (many $ (try comment <|> try metadata <|> step) <* (optional $ char '\n'))
+cookFile = fmap mconcat (many $ (try comment <|> try metadata <|> step) <* space)
 
 comment :: Parser Recipe
 comment = do
