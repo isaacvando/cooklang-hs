@@ -7,8 +7,8 @@ import Control.Monad (void)
 
 type Parser = Parsec Void String
 type Metadata = (String, String)
-type Step = [(String, Annotation)]
-data Annotation = Text | Ingredient (Maybe (String, Maybe String)) | Timer (String, Maybe String) (Maybe String) | Cookware String
+type Step = [Content]
+data Content = Text String | Ingredient String String String | Timer String String String | Cookware String
     deriving (Show, Eq)
 data Recipe = Recipe [Metadata] [Step]
     deriving (Show, Eq)
@@ -57,57 +57,51 @@ metadata = do
 
 step :: Parser Recipe
 step = do
-    content <- some (hspace *> (ingredient <|> cookware <|> timer <|> fmap (,Text) word) <* hspace <* (optional comment))
+    content <- some (hspace *> (ingredient <|> cookware <|> timer <|> fmap Text word) <* hspace <* (optional comment))
     return $ Recipe [] [foldr f [] content]
         where 
-            f val [] = [val]
-            f (st1, Text) ((st2, Text):acc) = (st1 ++ " " ++ st2, Text):acc
+            f (Text st1) ((Text st2):acc) = (Text $ st1 ++ " " ++ st2):acc
             f val acc = val:acc
 
-ingredient :: Parser (String, Annotation)
+ingredient :: Parser Content
 ingredient =  try (do
     void $ char '@'
     hspace
     content <- some $ noneOf "\n{"
     void $ char '{'
-    -- ing <- many $ noneOf "\n}"
-    q <- quantity
+    (amount, units) <- quantity
     void $ char '}'
-    return (norm content, Ingredient q))
-    -- return (norm content, Ingredient (if null ing then Nothing else Just $ (norm ing, Nothing))))
+    return $ Ingredient (norm content) (norm amount) (norm units))
     <|> (do
     void $ char '@'
     content <- word
-    return (content, Ingredient Nothing))
+    return $ Ingredient content "" "")
 
-cookware :: Parser (String, Annotation)
+cookware :: Parser Content
 cookware = char '#' *> hspace *> 
     (try (do 
     content <- some $ noneOf "\n{"
     void $ char '{' *> many (noneOf "\n}") *> char '}'
-    return (norm content, Cookware $ norm content))
+    return $ Cookware (norm content))
     <|> (do
     content <- word
-    return (content, Cookware content)))
+    return $ Cookware content))
 
-timer :: Parser (String, Annotation)
+timer :: Parser Content
 timer = do
     void $ char '~'
     timerLabel <- many $ noneOf "\n{"
     void $ char '{'
-    q <- quantity
+    (amount, units) <- quantity
     void $ char '}'
-    case q of
-        Nothing -> return ("", Timer ("", Nothing) (Just $ norm timerLabel))
-        Just (amount, Just unit) -> return (amount ++ " " ++ unit, Timer (amount, Just unit) (Just $ norm timerLabel))
-        Just (amount, Nothing) -> return (amount, Timer (amount, Nothing) (Just $ norm timerLabel))
+    return $ Timer (norm timerLabel) amount units
 
-quantity :: Parser (Maybe (String, Maybe String))
+quantity :: Parser (String, String)
 quantity = do
     amount <- many $ noneOf "\n%}"
     void $ optional (char '%')
     unit <- many $ noneOf "\n}"
-    return $ if null amount then Nothing else Just (norm amount, if null unit then Nothing else Just $ norm unit)
+    return $ (norm amount, norm unit)
 
 word :: Parser String
 word = some $ noneOf " \t\n"

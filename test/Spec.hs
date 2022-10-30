@@ -19,67 +19,64 @@ main = hspec $ do
         
         describe "step" $ do
             it "basic step" $ do
-                parseCook "this is a step" `shouldBe` (Right $ Recipe [] [[("this is a step", Text)]])
+                parseCook "this is a step" `shouldBe` (Right $ Recipe [] [[Text "this is a step"]])
 
             it "step beginning with >" $ do
-                parseCook "> sneaky step" `shouldBe` (Right $ Recipe [] [[("> sneaky step", Text)]])
+                parseCook "> sneaky step" `shouldBe` (Right $ Recipe [] [[Text "> sneaky step"]])
             
             it "step beginning with >>>" $ do
-                parseCook ">>> sneaky step" `shouldBe` (Right $ Recipe [] [[(">>> sneaky step", Text)]])
+                parseCook ">>> sneaky step" `shouldBe` (Right $ Recipe [] [[Text ">>> sneaky step"]])
 
             it "extra spaces" $ do
-                parseCook "    this    is    a step  " `shouldBe` (Right $ Recipe [] [[("this is a step", Text)]])
+                parseCook "    this    is    a step  " `shouldBe` (Right $ Recipe [] [[Text "this is a step"]])
 
             it "extra tabs and spaces" $ do
-                parseCook "\tthis  \t  is    \t\ta step  " `shouldBe` (Right $ Recipe [] [[("this is a step", Text)]])
+                parseCook "\tthis  \t  is    \t\ta step  " `shouldBe` (Right $ Recipe [] [[Text "this is a step"]])
 
             it "two steps" $ do 
-                parseCook "step one\nstep two" `shouldBe` (Right $ Recipe [] [[("step one", Text)], [("step two", Text)]])
+                parseCook "step one\nstep two" `shouldBe` (Right $ Recipe [] [[Text "step one"], [Text "step two"]])
 
             describe "ingredient" $ do
                 it "basic ingredient" $ do
-                    parseCook "add @apples" `shouldBe` (Right $ Recipe [] [[("add", Text), ("apples", Ingredient Nothing)]])
+                    parseCook "add @apples" `shouldBe` (Right $ Recipe [] [[Text "add", Ingredient "apples" "" ""]])
 
                 it "ingredient with longer sentence" $ do
-                    parseCook "add lots of delicious @apples" `shouldBe` (Right $ Recipe [] [[("add lots of delicious", Text), ("apples", Ingredient Nothing)]])
+                    parseCook "add lots of delicious @apples" `shouldBe` (Right $ Recipe [] [[Text "add lots of delicious", Ingredient "apples" "" ""]])
                 
                 it "multi word ingredient" $ do
-                    parseCook "@honey crisp apples{}" `shouldBe` (Right $ Recipe [] [[("honey crisp apples", Ingredient Nothing)]])
+                    parseCook "@honey crisp apples{}" `shouldBe` (Right $ Recipe [] [[Ingredient "honey crisp apples" "" ""]])
 
                 it "extra spacing" $ do
-                    parseCook "@  \thoney \t crisp\tapples    {}" `shouldBe` (Right $ Recipe [] [[("honey crisp apples", Ingredient Nothing)]])
+                    parseCook "@  \thoney \t crisp\tapples    {}" `shouldBe` (Right $ Recipe [] [[Ingredient "honey crisp apples" "" ""]])
                 
                 it "ingredient with quantity" $ do
-                    parseCook "@honey crisp apples {a million}" `shouldBe` (Right $ Recipe [] [[("honey crisp apples", Ingredient $ Just ("a million", Nothing))]])
+                    parseCook "@honey crisp apples {a million}" `shouldBe` (Right $ Recipe [] [[Ingredient "honey crisp apples" "a million" ""]])
 
                 it "ingredient with quantity and unit" $ do 
-                    parseCook "@chives {10 % bushels}" `shouldBe` (Right $ Recipe [] [[("chives", Ingredient $ Just ("10", Just "bushels"))]])
+                    parseCook "@chives {10 % bushels}" `shouldBe` (Right $ Recipe [] [[Ingredient "chives" "10" "bushels"]])
                 
                 it "ingredient with quantity and unit and no spaces" $ do 
-                    parseCook "@eggs{0.98%oz}" `shouldBe` (Right $ Recipe [] [[("eggs", Ingredient $ Just ("0.98", Just "oz"))]])
-
-                it "ingredient with a unit but no amount" $ do 
-                    parseCook "@dry aged carrots{%lbs}" `shouldBe` (Right $ Recipe [] [[("dry aged carrots", Ingredient Nothing)]])
+                    parseCook "@eggs{0.98%oz}" `shouldBe` (Right $ Recipe [] [[Ingredient "eggs" "0.98" "oz"]])
 
             describe "cookware" $ do
                 it "basic cookware" $ do
-                    parseCook "#pot" `shouldBe` (Right $ Recipe [] [[("pot", Cookware "pot")]])
+                    parseCook "#pot" `shouldBe` (Right $ Recipe [] [[Cookware "pot"]])
 
                 it "multiword cookware" $ do
-                    parseCook "#stock pot{}" `shouldBe` (Right $ Recipe [] [[("stock pot", Cookware "stock pot")]])
+                    parseCook "#stock pot{}" `shouldBe` (Right $ Recipe [] [[Cookware "stock pot"]])
                 
                 it "multiword cookware with ingredient" $ do
-                    parseCook "# cast iron skillet {blazing hot}" `shouldBe` (Right $ Recipe [] [[("cast iron skillet", Cookware "cast iron skillet")]])
+                    parseCook "# cast iron skillet {blazing hot}" `shouldBe` (Right $ Recipe [] [[Cookware "cast iron skillet"]])
 
             describe "timer" $ do
                 it "basic timer" $ do
-                    parseCook "~{10 minutes}" `shouldBe` (Right $ Recipe [] [[("10 minutes", Timer ("10 minutes",Nothing) (Just ""))]])
+                    parseCook "~{10 minutes}" `shouldBe` (Right $ Recipe [] [[Timer "" "10 minutes" ""]])
 
                 it "timer with label" $ do
-                    parseCook "~stewed apples {10 minutes}" `shouldBe` (Right $ Recipe [] [[("10 minutes", Timer ("10 minutes", Nothing) (Just "stewed apples"))]])
+                    parseCook "~stewed apples {10 minutes}" `shouldBe` (Right $ Recipe [] [[Timer "stewed apples" "10 minutes" ""]])
 
                 it "timer with amount and unit" $ do 
-                    parseCook "~grapefruit{2%hours}" `shouldBe` (Right $ Recipe [] [[("2 hours", Timer ("2", Just "hours") (Just "grapefruit"))]])
+                    parseCook "~grapefruit{2%hours}" `shouldBe` (Right $ Recipe [] [[Timer "grapefruit" "2" "hours"]])
 
         describe "comments" $ do
             it "single line comment" $ do
@@ -98,16 +95,16 @@ main = hspec $ do
                 parseCook "[-- comment --]" `shouldBe` (Right $ Recipe [] [])
 
             it "step followed by inline comment" $ do
-                parseCook "i'm a step -- i'm a comment" `shouldBe` (Right $ Recipe [] [[("i'm a step", Text)]])
+                parseCook "i'm a step -- i'm a comment" `shouldBe` (Right $ Recipe [] [[Text "i'm a step"]])
 
             it "step, inline comment, step" $ do
-                parseCook "i'm a step -- i'm a comment\nI'm another step" `shouldBe` (Right $ Recipe [] [[("i'm a step", Text)], [("I'm another step", Text)]])
+                parseCook "i'm a step -- i'm a comment\nI'm another step" `shouldBe` (Right $ Recipe [] [[Text "i'm a step"], [Text "I'm another step"]])
 
             it "ingredient followed by inline comment" $ do
-                parseCook "@cayenne pepper{} -- i'm a comment" `shouldBe` (Right $ Recipe [] [[("cayenne pepper", Ingredient Nothing)]])
+                parseCook "@cayenne pepper{} -- i'm a comment" `shouldBe` (Right $ Recipe [] [[Ingredient "cayenne pepper" "" ""]])
 
             it "step followed by block comment" $ do
-                parseCook "i'm a step [- i'm a comment -]" `shouldBe` (Right $ Recipe [] [[("i'm a step", Text)]])
+                parseCook "i'm a step [- i'm a comment -]" `shouldBe` (Right $ Recipe [] [[Text "i'm a step"]])
             
             it "metadata followed by inline comment" $ do
                 parseCook ">> key: value -- i'm a comment" `shouldBe` (Right $ Recipe [("key","value")] [])
@@ -123,5 +120,5 @@ main = hspec $ do
                 parseCook "" `shouldBe` (Right $ Recipe [] [])
 
             it "step and metadata" $ do
-                parseCook "step one\n>> key: value" `shouldBe` (Right $ Recipe [("key","value")] [[("step one", Text)]])
+                parseCook "step one\n>> key: value" `shouldBe` (Right $ Recipe [("key","value")] [[Text "step one"]])
 
