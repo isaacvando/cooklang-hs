@@ -1,6 +1,8 @@
 import Test.Hspec
 import Cook
 
+-- These tests are the result of test driving the development of cooklang-hs
+
 main :: IO ()
 main = hspec $ do
     describe "Cook" $ do 
@@ -77,6 +79,16 @@ main = hspec $ do
 
                 it "timer with amount and unit" $ do 
                     parseCook "~grapefruit{2%hours}" `shouldBe` (Right $ Recipe [] [[Timer "grapefruit" "2" "hours"]])
+                
+                it "putative timer without unit" $ do
+                    parseCook "~apple" `shouldBe` (Right $ Recipe [] [[Text "~apple"]])
+
+            describe "general step content" $ do
+                it "single ingredient followed by timer" $ do
+                    parseCook "@food ~timer{10 minutes}" `shouldBe` (Right $ Recipe [] [[Ingredient "food" "" "", Timer "timer" "10 minutes" ""]])
+
+                it "single cookware followed by ingredient" $ do 
+                    parseCook "#pan @two foods{}" `shouldBe` (Right $ Recipe [] [[Cookware "pan", Ingredient "two foods" "" ""]])
 
         describe "comments" $ do
             it "single line comment" $ do

@@ -57,7 +57,7 @@ metadata = do
 
 step :: Parser Recipe
 step = do
-    content <- some (hspace *> (ingredient <|> cookware <|> timer <|> fmap Text word) <* hspace <* (optional comment))
+    content <- some (hspace *> (ingredient <|> cookware <|> try timer <|> fmap Text word) <* hspace <* (optional comment))
     return $ Recipe [] [foldr f [] content]
         where 
             f (Text st1) ((Text st2):acc) = (Text $ st1 ++ " " ++ st2):acc
@@ -67,7 +67,7 @@ ingredient :: Parser Content
 ingredient =  try (do
     void $ char '@'
     hspace
-    content <- some $ noneOf "\n{"
+    content <- some $ noneOf "#~@\n{"
     void $ char '{'
     (amount, units) <- quantity
     void $ char '}'
@@ -80,7 +80,7 @@ ingredient =  try (do
 cookware :: Parser Content
 cookware = char '#' *> hspace *> 
     (try (do 
-    content <- some $ noneOf "\n{"
+    content <- some $ noneOf "#~@\n{"
     void $ char '{' *> many (noneOf "\n}") *> char '}'
     return $ Cookware (norm content))
     <|> (do
@@ -90,7 +90,7 @@ cookware = char '#' *> hspace *>
 timer :: Parser Content
 timer = do
     void $ char '~'
-    timerLabel <- many $ noneOf "\n{"
+    timerLabel <- many $ noneOf "#~@\n{"
     void $ char '{'
     (amount, units) <- quantity
     void $ char '}'
