@@ -8,7 +8,7 @@ import Control.Monad (void)
 type Parser = Parsec Void String
 type Metadata = (String, String)
 type Step = [Content]
-data Content = Text String | Ingredient String String String | Timer String String String | Cookware String
+data Content = Text String | Ingredient String String String | Timer String String String | Cookware String String
     deriving (Show, Eq)
 data Recipe = Recipe [Metadata] [Step]
     deriving (Show, Eq)
@@ -81,11 +81,11 @@ cookware :: Parser Content
 cookware = char '#' *> hspace *> 
     (try (do 
     content <- some $ noneOf "#~@\n{"
-    void $ char '{' *> many (noneOf "\n}") *> char '}'
-    return $ Cookware (norm content))
+    (amount, _) <- char '{' *> quantity <* char '}'
+    return $ Cookware (norm content) (norm amount))
     <|> (do
     content <- word
-    return $ Cookware content))
+    return $ Cookware content ""))
 
 timer :: Parser Content
 timer = do

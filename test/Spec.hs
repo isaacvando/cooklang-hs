@@ -62,13 +62,13 @@ main = hspec $ do
 
             describe "cookware" $ do
                 it "basic cookware" $ do
-                    parseCook "#pot" `shouldBe` (Right $ Recipe [] [[Cookware "pot"]])
+                    parseCook "#pot" `shouldBe` (Right $ Recipe [] [[Cookware "pot" ""]])
 
                 it "multiword cookware" $ do
-                    parseCook "#stock pot{}" `shouldBe` (Right $ Recipe [] [[Cookware "stock pot"]])
+                    parseCook "#stock pot{}" `shouldBe` (Right $ Recipe [] [[Cookware "stock pot" ""]])
                 
-                it "multiword cookware with ingredient" $ do
-                    parseCook "# cast iron skillet {blazing hot}" `shouldBe` (Right $ Recipe [] [[Cookware "cast iron skillet"]])
+                it "cookware with quantity" $ do
+                    parseCook "# cast iron skillet {10}" `shouldBe` (Right $ Recipe [] [[Cookware "cast iron skillet" "10"]])
 
             describe "timer" $ do
                 it "basic timer" $ do
@@ -88,7 +88,7 @@ main = hspec $ do
                     parseCook "@food ~timer{10 minutes}" `shouldBe` (Right $ Recipe [] [[Ingredient "food" "" "", Timer "timer" "10 minutes" ""]])
 
                 it "single cookware followed by ingredient" $ do 
-                    parseCook "#pan @two foods{}" `shouldBe` (Right $ Recipe [] [[Cookware "pan", Ingredient "two foods" "" ""]])
+                    parseCook "#pan @two foods{}" `shouldBe` (Right $ Recipe [] [[Cookware "pan" "", Ingredient "two foods" "" ""]])
 
         describe "comments" $ do
             it "single line comment" $ do
@@ -154,7 +154,7 @@ main = hspec $ do
                     ]
 
             let fullRecipe = Recipe [("source", "https://isaacvando.com"), ("time", "1 hr 20 min"), ("title", "Grandma's Quiche")] 
-                        [[Text "Preheat the", Cookware "oven", Text "to 325 degrees."]
+                        [[Text "Preheat the", Cookware "oven" "", Text "to 325 degrees."]
                         , [Text "In a medium bowl, mix the", Ingredient "eggs" "3" "", Text ",", Ingredient "sour cream" "1/2" "cup",
                             Text ",", Ingredient "shredded cheese" "1/3" "cup", Text ",", Ingredient "crushed french fried onions" "1/3" "cup",
                             Text ", and", Ingredient "chopped spinach" "" "", Text "."]
