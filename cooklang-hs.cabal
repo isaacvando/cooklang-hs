@@ -37,6 +37,7 @@ library
       base >=4.7 && <5
     , hspec
     , megaparsec
+    , yaml
   default-language: Haskell2010
 
 executable cooklang-hs-exe
@@ -53,6 +54,7 @@ executable cooklang-hs-exe
     , cooklang-hs
     , hspec
     , megaparsec
+    , yaml
   default-language: Haskell2010
 
 test-suite cooklang-hs-test
@@ -71,4 +73,5 @@ test-suite cooklang-hs-test
     , cooklang-hs
     , hspec
     , megaparsec
+    , yaml
   default-language: Haskell2010

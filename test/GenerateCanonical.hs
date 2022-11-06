@@ -4,10 +4,16 @@ import Text.Megaparsec
 import Text.Megaparsec.Char
 import Data.Void
 import Data.List
+-- import Data.Yaml hiding (Parser) -- TODO: use Data.Yaml instead
 
 -- type Parser = Parsec Void String
         -- Name Input Metadatas Steps
 data Test = Test String String [Metadata] [Step] deriving Show
+
+-- generate' :: IO ()
+-- generate' = do
+--     val <- decodeFileEither "test/canonical.yaml"
+--     print val
 
 generate :: IO ()
 generate = do
@@ -29,11 +35,11 @@ test = do
     name <- some $ noneOf ":"
     char ':' *> space
     string "source: |\n"
-    input <- some $ string "      " *> (some $ noneOf "\n") <* newline
+    input <- some $ (string "      " *> (some $ noneOf "\n") <* newline) <|> fmap (:[]) newline
     space *> string "result:"
     space *> string "steps:" *> space
     resultSteps <- some $ step <* space
-    resultMetadata <- space *> string "metadata:" *> space *> (string "{}" *> return []) <|> some metadata
+    resultMetadata <- space *> string "metadata:" *> space *> ((string "{}" *> return []) <|> some (metadata <* space))
     return $ Test name (intercalate "\n" input) resultMetadata resultSteps
 
 step :: Parser Step
@@ -41,14 +47,14 @@ step = do
     (string "[]" *> return []) 
     <|> (do 
             char '-' *> space
-            contents <- some (try text <|> ingredient <?> "step part")
+            contents <- some $ (try text <|> try ingredient <|> try cookware <|> timer <?> "step part") <* space
             return contents)
 
 metadata :: Parser Metadata
 metadata = do 
     space *> char '\"'
     key <- some $ noneOf "\""
-    string "\":" *> space
+    string "\": "
     value <- some $ noneOf "\n"
     return (key, value)
 
@@ -83,4 +89,5 @@ timer = do
     units <- many $ noneOf "\""
     char '\"' *> space *> string "name: \""
     name <- many $ noneOf "\""
+    char '\"'
     return $ Timer name amount units
