@@ -1,4 +1,3 @@
-import Test.Hspec
 import Cook hiding (step, metadata, ingredient, cookware, timer) -- (Metadata, Step, Content)
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -8,20 +7,31 @@ import Data.List
 
 -- type Parser = Parsec Void String
         -- Name Input Metadatas Steps
-data Test = Test String String [Metadata] [Step] deriving Show
+data Test = Test String String [Metadata] [Step]
 
--- generate' :: IO ()
--- generate' = do
---     val <- decodeFileEither "test/canonical.yaml"
---     print val
+instance Show Test where
+    show (Test name input m s) = "        it \"" ++ name ++ "\" $ do\n" ++ "            parseCook \"" ++ 
+       foldr (\x acc -> if x == '\n' then '\\':'n':acc else x:acc) [] input ++ "\" `shouldBe` (Right $ Recipe " ++ show m ++ show s ++ ")\n"
+
 
 generate :: IO ()
 generate = do
-    file <- readFile "test/canonical.yaml"
+    file <- readFile "test/Canonical.yaml"
     case (parse testFile "" file) of
         Left x -> putStrLn $ errorBundlePretty x
-        Right x -> print x
+        Right x -> writeFile "test/canonical.hs" (toHspecFile x)
     return ()
+
+toHspecFile :: [Test] -> String
+toHspecFile xs = header ++ unlines (map show xs)
+    where
+        header = unlines
+            ["--Canonical Tests for the Cooklang project"
+            , "import Test.Hspec"
+            , "import Cook\n"
+            , "main :: IO ()"
+            , "main = hspec $ do"
+            , "    describe \"Canonical\" $ do"]
 
 testFile :: Parser [Test]
 testFile = do

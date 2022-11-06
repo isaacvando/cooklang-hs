@@ -60,4 +60,5 @@ tests:
     dependencies:
     - cooklang-hs
 
-default-extensions: TupleSections
+
+# default-extensions: TupleSections
