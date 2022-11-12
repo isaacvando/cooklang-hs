@@ -11,15 +11,15 @@ data Test = Test String String [Metadata] [Step]
 
 instance Show Test where
     show (Test name input m s) = "        it \"" ++ name ++ "\" $ do\n" ++ "            parseCook \"" ++ 
-       foldr (\x acc -> if x == '\n' then '\\':'n':acc else x:acc) [] input ++ "\" `shouldBe` (Right $ Recipe " ++ show m ++ show s ++ ")\n"
+       foldr (\x acc -> if x == '\n' then '\\':'n':acc else x:acc) [] input ++ "\" `shouldBe` Right (Recipe " ++ show m ++ show s ++ ")\n"
 
 
 generate :: IO ()
 generate = do
-    file <- readFile "test/Canonical.yaml"
+    file <- readFile "canonical.yaml"
     case (parse testFile "" file) of
         Left x -> putStrLn $ errorBundlePretty x
-        Right x -> writeFile "test/canonical.hs" (toHspecFile x)
+        Right x -> putStrLn $ toHspecFile x
     return ()
 
 toHspecFile :: [Test] -> String
