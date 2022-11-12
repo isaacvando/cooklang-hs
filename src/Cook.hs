@@ -17,7 +17,7 @@ instance Semigroup Recipe where
     (Recipe m s) <> (Recipe m' s') = Recipe (m ++ m') (s ++ s')
 instance Monoid Recipe where
     mempty = Recipe [] []
-    
+
 
 parseCook :: String -> Either String Recipe
 parseCook input = case parse cookFile "" input of
@@ -34,19 +34,19 @@ comment = do
     return mempty
 
 singleComment :: Parser ()
-singleComment = hspace *> string "--" *> (many $ noneOf "\n") *> return ()
+singleComment = (hspace *> string "--" *> many (noneOf "\n")) *> return ()
 
 blockComment :: Parser ()
 blockComment = do
     hspace
     void $ string "[-"
-    void $ (many (try (char '-' <* notFollowedBy (char ']')) <|> noneOf "-"))
+    void (many (try (char '-' <* notFollowedBy (char ']')) <|> noneOf "-"))
     void $ string "-]"
     hspace
     return ()
 
 metadata :: Parser Recipe
-metadata = do 
+metadata = do
     void $ string ">>"
     hspace
     key <- some $ noneOf " \t:"
@@ -57,10 +57,10 @@ metadata = do
 
 step :: Parser Recipe
 step = do
-    content <- some (hspace *> (ingredient <|> cookware <|> try timer <|> fmap Text word) <* hspace <* (optional comment))
+    content <- some (hspace *> (ingredient <|> cookware <|> try timer <|> fmap Text word) <* hspace <* optional comment)
     return $ Recipe [] [foldr f [] content]
-        where 
-            f (Text st1) ((Text st2):acc) = (Text $ st1 ++ " " ++ st2):acc
+        where
+            f (Text st1) ((Text st2):acc) = Text (st1 ++ " " ++ st2):acc
             f val acc = val:acc
 
 ingredient :: Parser Content
@@ -78,8 +78,8 @@ ingredient =  try (do
     return $ Ingredient content "" "")
 
 cookware :: Parser Content
-cookware = char '#' *> hspace *> 
-    (try (do 
+cookware = char '#' *> hspace *>
+    (try (do
     content <- some $ noneOf "#~@\n{"
     (amount, _) <- char '{' *> quantity <* char '}'
     return $ Cookware (norm content) (norm amount))
@@ -101,7 +101,7 @@ quantity = do
     amount <- many $ noneOf "\n%}"
     void $ optional (char '%')
     unit <- many $ noneOf "\n}"
-    return $ (norm amount, norm unit)
+    return (norm amount, norm unit)
 
 word :: Parser String
 word = some $ noneOf " \t\n"

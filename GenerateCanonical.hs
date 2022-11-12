@@ -10,14 +10,14 @@ import Data.List
 data Test = Test String String [Metadata] [Step]
 
 instance Show Test where
-    show (Test name input m s) = "        it \"" ++ name ++ "\" $ do\n" ++ "            parseCook \"" ++ 
+    show (Test name input m s) = "        it \"" ++ name ++ "\" $ do\n" ++ "            parseCook \"" ++
        foldr (\x acc -> if x == '\n' then '\\':'n':acc else x:acc) [] input ++ "\" `shouldBe` Right (Recipe " ++ show m ++ show s ++ ")\n"
 
 
 generate :: IO ()
 generate = do
     file <- readFile "canonical.yaml"
-    case (parse testFile "" file) of
+    case parse testFile "" file of
         Left x -> putStrLn $ errorBundlePretty x
         Right x -> putStrLn $ toHspecFile x
     return ()
@@ -36,8 +36,7 @@ toHspecFile xs = header ++ unlines (map show xs)
 testFile :: Parser [Test]
 testFile = do
     string "version: 5" *> space *> string "tests:" *> space
-    ts <- some $ test <* space
-    return ts
+    some $ test <* space
 
 test :: Parser Test
 test = do
@@ -45,7 +44,7 @@ test = do
     name <- some $ noneOf ":"
     char ':' *> space
     string "source: |\n"
-    input <- some $ (string "      " *> (some $ noneOf "\n") <* newline) <|> fmap (:[]) newline
+    input <- some $ (string "      " *> some (noneOf "\n") <* newline) <|> fmap (:[]) newline
     space *> string "result:"
     space *> string "steps:" *> space
     resultSteps <- some $ step <* space
@@ -54,14 +53,13 @@ test = do
 
 step :: Parser Step
 step = do
-    (string "[]" *> return []) 
-    <|> (do 
+    string "[]" *> return []
+    <|> (do
             char '-' *> space
-            contents <- some $ (try text <|> try ingredient <|> try cookware <|> timer <?> "step part") <* space
-            return contents)
+            some $ (try text <|> try ingredient <|> try cookware <|> timer <?> "step part") <* space)
 
 metadata :: Parser Metadata
-metadata = do 
+metadata = do
     space *> char '\"'
     key <- some $ noneOf "\""
     string "\": "
@@ -69,7 +67,7 @@ metadata = do
     return (key, value)
 
 text :: Parser Content
-text = do 
+text = do
     string "- type: text" *> space *> string "value: \""
     content <- some $ noneOf "\""
     char '\"'
@@ -78,9 +76,9 @@ text = do
 ingredient :: Parser Content
 ingredient = do
     string "- type: ingredient" *> space *> string "name: "
-    name <- char '\"' *> (some $ noneOf "\"") <* char '\"' <* space <* string "quantity: "
-    amount <- (many $ noneOf "\n") <* space <* string "units: "
-    units <- char '\"' *> (many $ noneOf "\"") <* char '\"' <* space
+    name <- char '\"' *> some (noneOf "\"") <* char '\"' <* space <* string "quantity: "
+    amount <- many (noneOf "\n") <* space <* string "units: "
+    units <- char '\"' *> many (noneOf "\"") <* char '\"' <* space
     return $ Ingredient name amount units
 
 cookware :: Parser Content
@@ -101,3 +99,4 @@ timer = do
     name <- many $ noneOf "\""
     char '\"'
     return $ Timer name amount units
+    

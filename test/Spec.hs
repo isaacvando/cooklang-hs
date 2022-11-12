@@ -7,131 +7,131 @@ main = hspec $ do
     describe "TDD" $ do
         describe "metadata" $ do
             it "basic metadata" $ do
-                (parseCook ">> source: https://isaacvando.com") `shouldBe` (Right $ Recipe [("source", "https://isaacvando.com")] [])
+                parseCook ">> source: https://isaacvando.com" `shouldBe` Right (Recipe [("source", "https://isaacvando.com")] [])
 
             it "two metadata" $ do
-                (parseCook ">> first: metadata\n>> second: metadata") `shouldBe` (Right $ Recipe [("first", "metadata"), ("second", "metadata")] [])
+                parseCook ">> first: metadata\n>> second: metadata" `shouldBe` Right (Recipe [("first", "metadata"), ("second", "metadata")] [])
 
             it "simple extra spacing" $ do
-                parseCook ">>      \t  key:        value   \t\t\t\t   \n" `shouldBe` (Right $ Recipe [("key", "value")] [])
+                parseCook ">>      \t  key:        value   \t\t\t\t   \n" `shouldBe` Right (Recipe [("key", "value")] [])
 
             it "multiple words with extra spaces" $ do
-                parseCook ">>   key:    this    is  the value     " `shouldBe` (Right $ Recipe [("key", "this is the value")] [])
+                parseCook ">>   key:    this    is  the value     " `shouldBe` Right (Recipe [("key", "this is the value")] [])
 
         describe "step" $ do
             it "basic step" $ do
-                parseCook "this is a step" `shouldBe` (Right $ Recipe [] [[Text "this is a step"]])
+                parseCook "this is a step" `shouldBe` Right (Recipe [] [[Text "this is a step"]])
 
             it "step beginning with >" $ do
-                parseCook "> sneaky step" `shouldBe` (Right $ Recipe [] [[Text "> sneaky step"]])
+                parseCook "> sneaky step" `shouldBe` Right (Recipe [] [[Text "> sneaky step"]])
 
             it "step beginning with >>>" $ do
-                parseCook ">>> sneaky step" `shouldBe` (Right $ Recipe [] [[Text ">>> sneaky step"]])
+                parseCook ">>> sneaky step" `shouldBe` Right (Recipe [] [[Text ">>> sneaky step"]])
 
             it "extra spaces" $ do
-                parseCook "    this    is    a step  " `shouldBe` (Right $ Recipe [] [[Text "this is a step"]])
+                parseCook "    this    is    a step  " `shouldBe` Right (Recipe [] [[Text "this is a step"]])
 
             it "extra tabs and spaces" $ do
-                parseCook "\tthis  \t  is    \t\ta step  " `shouldBe` (Right $ Recipe [] [[Text "this is a step"]])
+                parseCook "\tthis  \t  is    \t\ta step  " `shouldBe` Right (Recipe [] [[Text "this is a step"]])
 
             it "two steps" $ do
-                parseCook "step one\nstep two" `shouldBe` (Right $ Recipe [] [[Text "step one"], [Text "step two"]])
+                parseCook "step one\nstep two" `shouldBe` Right (Recipe [] [[Text "step one"], [Text "step two"]])
 
             describe "ingredient" $ do
                 it "basic ingredient" $ do
-                    parseCook "add @apples" `shouldBe` (Right $ Recipe [] [[Text "add", Ingredient "apples" "" ""]])
+                    parseCook "add @apples" `shouldBe` Right (Recipe [] [[Text "add", Ingredient "apples" "" ""]])
 
                 it "ingredient with longer sentence" $ do
-                    parseCook "add lots of delicious @apples" `shouldBe` (Right $ Recipe [] [[Text "add lots of delicious", Ingredient "apples" "" ""]])
+                    parseCook "add lots of delicious @apples" `shouldBe` Right (Recipe [] [[Text "add lots of delicious", Ingredient "apples" "" ""]])
 
                 it "multi word ingredient" $ do
-                    parseCook "@honey crisp apples{}" `shouldBe` (Right $ Recipe [] [[Ingredient "honey crisp apples" "" ""]])
+                    parseCook "@honey crisp apples{}" `shouldBe` Right (Recipe [] [[Ingredient "honey crisp apples" "" ""]])
 
                 it "extra spacing" $ do
-                    parseCook "@  \thoney \t crisp\tapples    {}" `shouldBe` (Right $ Recipe [] [[Ingredient "honey crisp apples" "" ""]])
+                    parseCook "@  \thoney \t crisp\tapples    {}" `shouldBe` Right (Recipe [] [[Ingredient "honey crisp apples" "" ""]])
 
                 it "ingredient with quantity" $ do
-                    parseCook "@honey crisp apples {a million}" `shouldBe` (Right $ Recipe [] [[Ingredient "honey crisp apples" "a million" ""]])
+                    parseCook "@honey crisp apples {a million}" `shouldBe` Right (Recipe [] [[Ingredient "honey crisp apples" "a million" ""]])
 
                 it "ingredient with quantity and unit" $ do
-                    parseCook "@chives {10 % bushels}" `shouldBe` (Right $ Recipe [] [[Ingredient "chives" "10" "bushels"]])
+                    parseCook "@chives {10 % bushels}" `shouldBe` Right (Recipe [] [[Ingredient "chives" "10" "bushels"]])
 
                 it "ingredient with quantity and unit and no spaces" $ do
-                    parseCook "@eggs{0.98%oz}" `shouldBe` (Right $ Recipe [] [[Ingredient "eggs" "0.98" "oz"]])
+                    parseCook "@eggs{0.98%oz}" `shouldBe` Right (Recipe [] [[Ingredient "eggs" "0.98" "oz"]])
 
             describe "cookware" $ do
                 it "basic cookware" $ do
-                    parseCook "#pot" `shouldBe` (Right $ Recipe [] [[Cookware "pot" ""]])
+                    parseCook "#pot" `shouldBe` Right (Recipe [] [[Cookware "pot" ""]])
 
                 it "multiword cookware" $ do
-                    parseCook "#stock pot{}" `shouldBe` (Right $ Recipe [] [[Cookware "stock pot" ""]])
+                    parseCook "#stock pot{}" `shouldBe` Right (Recipe [] [[Cookware "stock pot" ""]])
 
                 it "cookware with quantity" $ do
-                    parseCook "# cast iron skillet {10}" `shouldBe` (Right $ Recipe [] [[Cookware "cast iron skillet" "10"]])
+                    parseCook "# cast iron skillet {10}" `shouldBe` Right (Recipe [] [[Cookware "cast iron skillet" "10"]])
 
             describe "timer" $ do
                 it "basic timer" $ do
-                    parseCook "~{10 minutes}" `shouldBe` (Right $ Recipe [] [[Timer "" "10 minutes" ""]])
+                    parseCook "~{10 minutes}" `shouldBe` Right (Recipe [] [[Timer "" "10 minutes" ""]])
 
                 it "timer with label" $ do
-                    parseCook "~stewed apples {10 minutes}" `shouldBe` (Right $ Recipe [] [[Timer "stewed apples" "10 minutes" ""]])
+                    parseCook "~stewed apples {10 minutes}" `shouldBe` Right (Recipe [] [[Timer "stewed apples" "10 minutes" ""]])
 
                 it "timer with amount and unit" $ do
-                    parseCook "~grapefruit{2%hours}" `shouldBe` (Right $ Recipe [] [[Timer "grapefruit" "2" "hours"]])
+                    parseCook "~grapefruit{2%hours}" `shouldBe` Right (Recipe [] [[Timer "grapefruit" "2" "hours"]])
 
                 it "putative timer without unit" $ do
-                    parseCook "~apple" `shouldBe` (Right $ Recipe [] [[Text "~apple"]])
+                    parseCook "~apple" `shouldBe` Right (Recipe [] [[Text "~apple"]])
 
             describe "general step content" $ do
                 it "single ingredient followed by timer" $ do
-                    parseCook "@food ~timer{10 minutes}" `shouldBe` (Right $ Recipe [] [[Ingredient "food" "" "", Timer "timer" "10 minutes" ""]])
+                    parseCook "@food ~timer{10 minutes}" `shouldBe` Right (Recipe [] [[Ingredient "food" "" "", Timer "timer" "10 minutes" ""]])
 
                 it "single cookware followed by ingredient" $ do
-                    parseCook "#pan @two foods{}" `shouldBe` (Right $ Recipe [] [[Cookware "pan" "", Ingredient "two foods" "" ""]])
+                    parseCook "#pan @two foods{}" `shouldBe` Right (Recipe [] [[Cookware "pan" "", Ingredient "two foods" "" ""]])
 
         describe "comments" $ do
             it "single line comment" $ do
-                parseCook "-- this is a comment" `shouldBe` (Right $ Recipe [] [])
+                parseCook "-- this is a comment" `shouldBe` Right (Recipe [] [])
 
             it "block comment" $ do
-                parseCook "[- single line block comment -]" `shouldBe` (Right $ Recipe [] [])
+                parseCook "[- single line block comment -]" `shouldBe` Right (Recipe [] [])
 
             it "multi line block comment" $ do
-                parseCook "[- multi line \n block \n comment \n-]" `shouldBe` (Right $ Recipe [] [])
+                parseCook "[- multi line \n block \n comment \n-]" `shouldBe` Right (Recipe [] [])
 
             it "block comment containing a - and ]" $ do
-                parseCook "[- this ] is just - a comment ] with -]" `shouldBe` (Right $ Recipe [] [])
+                parseCook "[- this ] is just - a comment ] with -]" `shouldBe` Right (Recipe [] [])
 
             it "block comment containing - adjacent to end" $ do
-                parseCook "[-- comment --]" `shouldBe` (Right $ Recipe [] [])
+                parseCook "[-- comment --]" `shouldBe` Right (Recipe [] [])
 
             it "step followed by inline comment" $ do
-                parseCook "i'm a step -- i'm a comment" `shouldBe` (Right $ Recipe [] [[Text "i'm a step"]])
+                parseCook "i'm a step -- i'm a comment" `shouldBe` Right (Recipe [] [[Text "i'm a step"]])
 
             it "step, inline comment, step" $ do
-                parseCook "i'm a step -- i'm a comment\nI'm another step" `shouldBe` (Right $ Recipe [] [[Text "i'm a step"], [Text "I'm another step"]])
+                parseCook "i'm a step -- i'm a comment\nI'm another step" `shouldBe` Right (Recipe [] [[Text "i'm a step"], [Text "I'm another step"]])
 
             it "ingredient followed by inline comment" $ do
-                parseCook "@cayenne pepper{} -- i'm a comment" `shouldBe` (Right $ Recipe [] [[Ingredient "cayenne pepper" "" ""]])
+                parseCook "@cayenne pepper{} -- i'm a comment" `shouldBe` Right (Recipe [] [[Ingredient "cayenne pepper" "" ""]])
 
             it "step followed by block comment" $ do
-                parseCook "i'm a step [- i'm a comment -]" `shouldBe` (Right $ Recipe [] [[Text "i'm a step"]])
+                parseCook "i'm a step [- i'm a comment -]" `shouldBe` Right (Recipe [] [[Text "i'm a step"]])
 
             it "metadata followed by inline comment" $ do
-                parseCook ">> key: value -- i'm a comment" `shouldBe` (Right $ Recipe [("key","value")] [])
+                parseCook ">> key: value -- i'm a comment" `shouldBe` Right (Recipe [("key","value")] [])
 
             it "metadata followed by block comment" $ do
-                parseCook ">> key: value [-i'm a comment-]" `shouldBe` (Right $ Recipe [("key","value")] [])
+                parseCook ">> key: value [-i'm a comment-]" `shouldBe` Right (Recipe [("key","value")] [])
 
             -- it "metadata followed by adjacent block comment" $ do
             --     parseCook ">> key: value[-i'm a comment-]" `shouldBe` (Right $ Recipe [("key","value")] [])
 
         describe "general" $ do
             it "empty input" $ do
-                parseCook "" `shouldBe` (Right $ Recipe [] [])
+                parseCook "" `shouldBe` Right (Recipe [] [])
 
             it "step and metadata" $ do
-                parseCook "step one\n>> key: value" `shouldBe` (Right $ Recipe [("key","value")] [[Text "step one"]])
+                parseCook "step one\n>> key: value" `shouldBe` Right (Recipe [("key","value")] [[Text "step one"]])
 
 
             let fullRecipeText = unlines [
