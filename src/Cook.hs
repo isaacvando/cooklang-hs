@@ -66,7 +66,9 @@ step = do
 
 text :: Parser Content
 text = do
-    t <- some $ noneOf "@#~\n"
+    t <- some $ try (char '-' <* notFollowedBy (oneOf "-]")) -- this use of notFollowedBy prevents comments from being parsed as text
+        <|> try (char '[' <* notFollowedBy (char '-')) 
+        <|> noneOf "@#~\n-["
     return $ Text t
 
 ingredient :: Parser Content
@@ -93,14 +95,20 @@ cookware = char '#' *> hspace *>
     content <- word
     return $ Cookware content "1"))
 
+
+-- simplify this
 timer :: Parser Content
-timer = do
-    void $ char '~'
-    timerLabel <- many $ noneOf "#~@\n{"
-    void $ char '{'
-    (amount, units) <- quantity
-    void $ char '}'
-    return $ Timer (norm timerLabel) amount units
+timer = try (do
+        void $ char '~'
+        timerLabel <- many $ noneOf "#~@\n{"
+        void $ char '{'
+        (amount, units) <- quantity
+        void $ char '}'
+        return $ Timer (norm timerLabel) amount units)
+    <|> (do
+        void $ char '~'
+        timerLabel <- many $ noneOf "#~@\n{"
+        return $ Timer (norm timerLabel) "" "")
 
 quantity :: Parser (String, String)
 quantity = do
