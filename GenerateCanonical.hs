@@ -1,4 +1,4 @@
-import Cook hiding (step, metadata, ingredient, cookware, timer) -- (Metadata, Step, Content)
+import Cook (Metadata, Step, Content( Text, Ingredient, Cookware, Timer ), Parser)
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import Data.Void
@@ -11,7 +11,7 @@ data Test = Test String String [Metadata] [Step]
 
 instance Show Test where
     show (Test name input m s) = "        it \"" ++ name ++ "\" $ do\n" ++ "            parseCook \"" ++
-       foldr (\x acc -> if x == '\n' then '\\':'n':acc else x:acc) [] input ++ "\" `shouldBe` Right (Recipe " ++ show m ++ show s ++ ")\n"
+       foldr (\x acc -> if x == '\n' then '\\':'n':acc else x:acc) [] input ++ "\" `shouldBe` Right (Recipe " ++ show m ++ " " ++ (case show s of "[[]]" -> "[]"; x -> x) ++ ")\n"
 
 
 generate :: IO ()
@@ -77,7 +77,7 @@ ingredient :: Parser Content
 ingredient = do
     string "- type: ingredient" *> space *> string "name: "
     name <- char '\"' *> some (noneOf "\"") <* char '\"' <* space <* string "quantity: "
-    amount <- many (noneOf "\n") <* space <* string "units: "
+    amount <- optional (char '"') *> many (noneOf "\n\"") <* optional (char '"') <* space <* string "units: "
     units <- char '\"' *> many (noneOf "\"") <* char '\"' <* space
     return $ Ingredient name amount units
 

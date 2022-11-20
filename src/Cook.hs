@@ -49,19 +49,25 @@ metadata :: Parser Recipe
 metadata = do
     void $ string ">>"
     hspace
-    key <- some $ noneOf " \t:"
+    key <- some $ noneOf ":"
     void $ char ':'
     hspace
     value <- some $ word <* hspace <* optional comment
-    return $ Recipe [(key, unwords value)] []
+    return $ Recipe [(norm key, unwords value)] []
 
 step :: Parser Recipe
 step = do
-    content <- some (hspace *> (ingredient <|> cookware <|> try timer <|> fmap Text word) <* hspace <* optional comment)
-    return $ Recipe [] [foldr f [] content]
-        where
-            f (Text st1) ((Text st2):acc) = Text (st1 ++ " " ++ st2):acc
-            f val acc = val:acc
+    content <- some $ (ingredient <|> cookware <|> try timer <|> text) <* optional comment
+    return $ Recipe [] [content]
+    -- return $ Recipe [] [foldr f [] content]
+    --     where
+    --         f (Text st1) ((Text st2):acc) = Text (st1 ++ " " ++ st2):acc
+    --         f val acc = val:acc
+
+text :: Parser Content
+text = do
+    t <- some $ noneOf "@#~\n"
+    return $ Text t
 
 ingredient :: Parser Content
 ingredient =  try (do
@@ -71,21 +77,21 @@ ingredient =  try (do
     void $ char '{'
     (amount, units) <- quantity
     void $ char '}'
-    return $ Ingredient (norm content) (norm amount) (norm units))
+    return $ Ingredient (norm content) (case norm amount of "" -> "some"; x -> x) (norm units))
     <|> (do
     void $ char '@'
     content <- word
-    return $ Ingredient content "" "")
+    return $ Ingredient content "some" "")
 
 cookware :: Parser Content
 cookware = char '#' *> hspace *>
     (try (do
     content <- some $ noneOf "#~@\n{"
     (amount, _) <- char '{' *> quantity <* char '}'
-    return $ Cookware (norm content) (norm amount))
+    return $ Cookware (norm content) (case norm amount of "" -> "1"; x -> x))
     <|> (do
     content <- word
-    return $ Cookware content ""))
+    return $ Cookware content "1"))
 
 timer :: Parser Content
 timer = do
@@ -105,6 +111,8 @@ quantity = do
 
 word :: Parser String
 word = some $ noneOf " \t\n"
+    -- endSpace <- optional $ char ' '
+    -- return $ chars ++ (case endSpace of Nothing -> ""; Just _ -> " ")
 
 -- removes extra whitespace
 norm :: String -> String
