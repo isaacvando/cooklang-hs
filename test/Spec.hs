@@ -79,6 +79,24 @@ main = hspec $ do
                 it "timer without unit" $ do
                     parseCook "~apple" `shouldBe` Right (Recipe [] [[Timer "apple" "" ""]])
 
+            -- I'm not a big fan of this behavior as it loses information and could change the aesthetic qualities of a recipe
+            -- if fractions are desired but I am complying with the canonical tests. 
+            describe "fractions" $ do
+                it "basic no spaces" $ do
+                    parseCook "@parsley{1/2%lbs}" `shouldBe` Right (Recipe [] [[Ingredient "parsley" "0.5" "lbs"]])
+
+                it "repeating decimal" $ do
+                    parseCook "@food{1/3}" `shouldBe` Right (Recipe [] [[Ingredient "food" "0.33" ""]])
+
+                it "bigger number" $ do
+                    parseCook "@grapefruit{9999/5}" `shouldBe` Right (Recipe [] [[Ingredient "grapefruit" "1999.8" ""]])
+
+                it "leading zeros don't count" $ do
+                    parseCook "#pot{08/3}" `shouldBe` Right (Recipe [] [[Cookware "pot" "08/3"]])
+
+                it "division by zero doesn't error" $ do
+                    parseCook "~foo{10/0}" `shouldBe` Right (Recipe [] [[Timer "foo" "10/0" ""]])
+
             describe "general step content" $ do
                 it "single ingredient followed by timer" $ do
                     parseCook "@food ~timer{10 minutes}" `shouldBe` Right (Recipe [] [[Ingredient "food" "some" "", Text " ", Timer "timer" "10 minutes" ""]])
@@ -148,8 +166,8 @@ main = hspec $ do
 
             let fullRecipe = Recipe [("source", "https://isaacvando.com"), ("time", "1 hr 20 min"), ("title", "Grandma's Quiche")]
                         [[Text "Preheat the ", Cookware "oven" "1", Text " to 325 degrees."]
-                        , [Text "In a medium bowl, mix the ", Ingredient "eggs" "3" "", Text ", ", Ingredient "sour cream" "1/2" "cup",
-                            Text ", ", Ingredient "shredded cheese" "1/3" "cup", Text ", ", Ingredient "crushed french fried onions" "1/3" "cup",
+                        , [Text "In a medium bowl, mix the ", Ingredient "eggs" "3" "", Text ", ", Ingredient "sour cream" "0.5" "cup",
+                            Text ", ", Ingredient "shredded cheese" "0.33" "cup", Text ", ", Ingredient "crushed french fried onions" "0.33" "cup",
                             Text ", and ", Ingredient "chopped spinach" "some" "", Text "."]
                         , [Text "Mix ingredients thoroughly and add to the ", Ingredient "pie crust" "1" "", Text "."]
                         , [Text "Bake for an ", Timer "" "hour" "", Text " or until the top is nicely brown and a toothpick comes out clean."]
@@ -201,20 +219,20 @@ main = hspec $ do
         it "EquipmentQuantityMultipleWords" $ do
             parseCook "#frying pan{two small}" `shouldBe` Right (Recipe [] [[Cookware "frying pan" "two small"]])
 
-        -- it "Fractions" $ do
-        --     parseCook "@milk{1/2%cup}" `shouldBe` Right (Recipe [] [[Ingredient "milk" "0.5" "cup"]])
+        it "Fractions" $ do
+            parseCook "@milk{1/2%cup}" `shouldBe` Right (Recipe [] [[Ingredient "milk" "0.5" "cup"]])
 
-        -- it "FractionsInDirections" $ do
-        --     parseCook "knife cut about every 1/2 inches" `shouldBe` Right (Recipe [] [[Text "knife cut about every 1/2 inches"]])
+        it "FractionsInDirections" $ do
+            parseCook "knife cut about every 1/2 inches" `shouldBe` Right (Recipe [] [[Text "knife cut about every 1/2 inches"]])
 
-        -- it "FractionsLike" $ do
-        --     parseCook "@milk{01/2%cup}" `shouldBe` Right (Recipe [] [[Ingredient "milk" "01/2" "cup"]])
+        it "FractionsLike" $ do
+            parseCook "@milk{01/2%cup}" `shouldBe` Right (Recipe [] [[Ingredient "milk" "01/2" "cup"]])
 
-        -- it "FractionsWithSpaces" $ do
-        --     parseCook "@milk{1 / 2 %cup}" `shouldBe` Right (Recipe [] [[Ingredient "milk" "0.5" "cup"]])
+        it "FractionsWithSpaces" $ do
+            parseCook "@milk{1 / 2 %cup}" `shouldBe` Right (Recipe [] [[Ingredient "milk" "0.5" "cup"]])
 
-        -- it "IngredientMultipleWordsWithLeadingNumber" $ do
-        --     parseCook "Top with @1000 island dressing{ }" `shouldBe` Right (Recipe [] [[Text "Top with ",Ingredient "1000 island dressing" "some" ""]])
+        it "IngredientMultipleWordsWithLeadingNumber" $ do
+            parseCook "Top with @1000 island dressing{ }" `shouldBe` Right (Recipe [] [[Text "Top with ",Ingredient "1000 island dressing" "some" ""]])
 
         it "IngredientWithEmoji" $ do
             parseCook "Add some @🧂" `shouldBe` Right (Recipe [] [[Text "Add some ",Ingredient "\129474" "some" ""]])
@@ -282,11 +300,12 @@ main = hspec $ do
         it "TimerDecimal" $ do
             parseCook "Fry for ~{1.5%minutes}" `shouldBe` Right (Recipe [] [[Text "Fry for ",Timer "" "1.5" "minutes"]])
 
-        -- it "TimerFractional" $ do
-        --     parseCook "Fry for ~{1/2%hour}" `shouldBe` Right (Recipe [] [[Text "Fry for ",Timer "" "0.5" "hour"]])
+        it "TimerFractional" $ do
+            parseCook "Fry for ~{1/2%hour}" `shouldBe` Right (Recipe [] [[Text "Fry for ",Timer "" "0.5" "hour"]])
 
         it "TimerInteger" $ do
             parseCook "Fry for ~{10%minutes}" `shouldBe` Right (Recipe [] [[Text "Fry for ",Timer "" "10" "minutes"]])
 
         it "TimerWithName" $ do
             parseCook "Fry for ~potato{42%minutes}" `shouldBe` Right (Recipe [] [[Text "Fry for ",Timer "potato" "42" "minutes"]])
+            

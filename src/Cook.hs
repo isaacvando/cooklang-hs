@@ -4,6 +4,7 @@ import Text.Megaparsec
 import Text.Megaparsec.Char
 import Data.Void
 import Control.Monad (void)
+import Text.Printf
 
 type Parser = Parsec Void String
 type Metadata = (String, String)
@@ -59,14 +60,11 @@ step :: Parser Recipe
 step = do
     content <- some $ (ingredient <|> cookware <|> try timer <|> text) <* optional comment
     return $ Recipe [] [content]
-    -- return $ Recipe [] [foldr f [] content]
-    --     where
-    --         f (Text st1) ((Text st2):acc) = Text (st1 ++ " " ++ st2):acc
-    --         f val acc = val:acc
 
 text :: Parser Content
 text = do
-    t <- some $ try (char '-' <* notFollowedBy (oneOf "-]")) -- this use of notFollowedBy prevents comments from being parsed as text
+    -- this use of notFollowedBy prevents comments from being parsed as text
+    t <- some $ try (char '-' <* notFollowedBy (oneOf "-]"))
         <|> try (char '[' <* notFollowedBy (char '-')) 
         <|> noneOf "@#~\n-["
     return $ Text t
@@ -112,15 +110,21 @@ timer = try (do
 
 quantity :: Parser (String, String)
 quantity = do
-    amount <- many $ noneOf "\n%}"
-    void $ optional (char '%')
+    amount <- try fraction <|> many (noneOf "\n%}")
+    void $ hspace *> optional (char '%') <* hspace
     unit <- many $ noneOf "\n}"
     return (norm amount, norm unit)
 
+fraction :: Parser String
+fraction = do
+    n1 <- some digitChar <* hspace <* char '/' <* hspace
+    n2 <- some digitChar
+    void $ if all (== '0') n2 || head n1 == '0' then fail "not a fraction" else return "" -- there must be a better way to do this
+    return $ let x = printf "%.2f" ((read n1 / read n2) :: Double)
+            in if last x == '0' then init x else x
+
 word :: Parser String
 word = some $ noneOf " \t\n"
-    -- endSpace <- optional $ char ' '
-    -- return $ chars ++ (case endSpace of Nothing -> ""; Just _ -> " ")
 
 -- removes extra whitespace
 norm :: String -> String
