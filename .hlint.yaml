@@ -8,6 +8,7 @@
 
 # Warnings currently triggered by your code
 - ignore: {name: "Use $>"} # 3 hints
+- ignore: {name: "Avoid lambda using `infix`"}
 
 
 # Specify additional command line arguments

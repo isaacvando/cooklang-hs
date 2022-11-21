@@ -1,18 +1,18 @@
-import Cook (Metadata, Step, Content( Text, Ingredient, Cookware, Timer ), Parser)
+import Cook
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import Data.Void
 import Data.List
--- import Data.Yaml hiding (Parser) -- TODO: use Data.Yaml instead
+-- TODO: use Data.Yaml instead
 
--- type Parser = Parsec Void String
+type Parser = Parsec Void String
+
         -- Name Input Metadatas Steps
 data Test = Test String String [Metadata] [Step]
 
 instance Show Test where
     show (Test name input m s) = "        it \"" ++ name ++ "\" $ do\n" ++ "            parseCook \"" ++
        foldr (\x acc -> if x == '\n' then '\\':'n':acc else x:acc) [] input ++ "\" `shouldBe` Right (Recipe " ++ show m ++ " " ++ (case show s of "[[]]" -> "[]"; x -> x) ++ ")\n"
-
 
 generate :: IO ()
 generate = do
