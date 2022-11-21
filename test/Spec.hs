@@ -1,5 +1,7 @@
-import Test.Hspec
-import Cook
+-- Copyright 2022 Isaac Van Doren
+
+import Test.Hspec ( hspec, describe, it, shouldBe )
+import Cook ( parseCook, Content(..), Recipe(..) )
 
 
 main :: IO ()

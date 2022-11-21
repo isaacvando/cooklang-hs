@@ -1,3 +1,5 @@
+-- Copyright 2022 Isaac Van Doren
+
 module Cook (Recipe(..), Content(..), Step, Metadata, parseCook) where
 
 import Text.Megaparsec (optional, some, noneOf, many, errorBundlePretty, parse, MonadParsec(try, notFollowedBy), (<|>), Parsec, oneOf)
@@ -22,6 +24,7 @@ instance Semigroup Recipe where
     (Recipe m s) <> (Recipe m' s') = Recipe (m ++ m') (s ++ s')
 instance Monoid Recipe where
     mempty = Recipe [] []
+    
 
 parseCook :: String -> Either String Recipe
 parseCook input = case parse cookFile "" input of
