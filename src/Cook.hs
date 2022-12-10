@@ -2,7 +2,7 @@
 
 module Cook (Recipe(..), Content(..), Step, Metadata, parseCook) where
 
-import Text.Megaparsec (optional, some, noneOf, many, errorBundlePretty, parse, MonadParsec(try, notFollowedBy), (<|>), Parsec, oneOf)
+import Text.Megaparsec (optional, some, noneOf, many, errorBundlePretty, parse, MonadParsec(try), (<|>), Parsec)
 import Text.Megaparsec.Char (hspace, char, string, space, digitChar)
 import Data.Void (Void)
 import Control.Monad (void, when)
@@ -24,42 +24,48 @@ instance Semigroup Recipe where
     (Recipe m s) <> (Recipe m' s') = Recipe (m ++ m') (s ++ s')
 instance Monoid Recipe where
     mempty = Recipe [] []
-    
+
 
 parseCook :: String -> Either String Recipe
-parseCook input = case parse cookFile "" input of
+parseCook input = case parse cookFile "" (simplify input) of
     Left bundle -> Left $ errorBundlePretty bundle
     Right result -> Right result
 
-cookFile :: Parser Recipe
-cookFile = fmap mconcat (many $ (try comment <|> try metadata <|> step) <* space)
+simplify :: String -> String
+simplify = inlineComments . blockComments
+    where
+        inlineComments = unlines . map f . lines
+            where
+                f ('-':'-':_) = ""
+                f (x:xs) = x : f xs
+                f "" = ""
+        blockComments :: String -> String
+        blockComments ('[':'-':xs) = blockComments (consume xs)
+            where 
+                consume ('-':']':xs) = xs
+                consume (_:xs) = consume xs
+                consume "" = ""
+        blockComments (x:xs) = x : blockComments xs
+        blockComments "" = ""
 
-comment :: Parser Recipe
-comment = do
-    void $ string "--" *> many (noneOf "\n")
-        <|> string "[-" *> many (try (char '-' <* notFollowedBy (char ']')) <|> noneOf "-") *> string "-]"
-    return mempty
+cookFile :: Parser Recipe
+cookFile = fmap mconcat (space *> many (try metadata <* space <|> step <* space))
 
 metadata :: Parser Recipe
 metadata = do
     void $ string ">>" <* hspace
     key <- some $ noneOf ":"
     void $ char ':' <* hspace
-    value <- some $ word <* hspace <* optional comment
+    value <- some $ word <* hspace
     return $ Recipe [(norm key, unwords value)] []
 
 step :: Parser Recipe
 step = do
-    content <- some $ (ingredient <|> cookware <|> timer <|> text) <* optional comment
+    content <- some $ (ingredient <|> cookware <|> timer <|> text)
     return $ Recipe [] [content]
 
 text :: Parser Content
-text = do
-    -- this use of notFollowedBy prevents comments from being parsed as text
-    t <- some $ try (char '-' <* notFollowedBy (oneOf "-]"))
-        <|> try (char '[' <* notFollowedBy (char '-'))
-        <|> noneOf "@#~\n-["
-    return $ Text t
+text = Text <$> (some (noneOf "@#~\n"))
 
 ingredient :: Parser Content
 ingredient =  char '@' *> hspace *>

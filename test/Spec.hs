@@ -36,6 +36,9 @@ main = hspec $ do
             it "two steps" $ do
                 parseCook "step one\nstep two" `shouldBe` Right (Recipe [] [[Text "step one"], [Text "step two"]])
 
+            it "space around step" $ do
+                parseCook "\n\nfoo\n\t" `shouldBe` Right (Recipe [] [[Text "foo"]])
+
             describe "ingredient" $ do
                 it "basic ingredient" $ do
                     parseCook "add @apples" `shouldBe` Right (Recipe [] [[Text "add ", Ingredient "apples" "some" ""]])
