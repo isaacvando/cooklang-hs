@@ -1,9 +1,9 @@
 -- Copyright 2022 Isaac Van Doren
 
-module Cook (Recipe(..), Content(..), Step, Metadata, parseCook) where
+module Cook (Result(..), Content(..), Category(..), Item(..), Step, Metadata, parseCook) where
 
 import Text.Megaparsec (optional, some, noneOf, many, errorBundlePretty, parse, MonadParsec(try), (<|>), Parsec)
-import Text.Megaparsec.Char (hspace, char, string, space, digitChar)
+import Text.Megaparsec.Char (hspace, char, string, space, digitChar, newline)
 import Data.Void (Void)
 import Control.Monad (void, when)
 import Text.Printf (printf)
@@ -11,22 +11,27 @@ import Text.Printf (printf)
 type Parser = Parsec Void String
 
 type Metadata = (String, String)
+
 type Step = [Content]
 data Content = Text String
     | Ingredient String String String   -- label quantity units
     | Timer String String String        -- label quantity units
     | Cookware String String            -- label quantity
     deriving (Show, Eq)
-data Recipe = Recipe [Metadata] [Step]
+
+data Item = Item String String deriving (Show, Eq)
+data Category = Category String [Item] deriving (Show, Eq)
+
+data Result = Recipe [Metadata] [Step] | Grouping [Category]
     deriving (Show, Eq)
 
-instance Semigroup Recipe where
+instance Semigroup Result where
     (Recipe m s) <> (Recipe m' s') = Recipe (m ++ m') (s ++ s')
-instance Monoid Recipe where
+instance Monoid Result where
     mempty = Recipe [] []
 
 
-parseCook :: String -> Either String Recipe
+parseCook :: String -> Either String Result
 parseCook input = case parse cookFile "" (simplify input) of
     Left bundle -> Left $ errorBundlePretty bundle
     Right result -> Right result
@@ -48,10 +53,25 @@ simplify = inlineComments . blockComments
         blockComments (x:xs) = x : blockComments xs
         blockComments "" = ""
 
-cookFile :: Parser Recipe
-cookFile = fmap mconcat (space *> many (try metadata <* space <|> step <* space))
+cookFile :: Parser Result
+cookFile = grouping <|> fmap mconcat (space *> many (try metadata <* space <|> step <* space))
 
-metadata :: Parser Recipe
+grouping :: Parser Result
+grouping = Grouping <$> some (category <* many newline)
+
+category :: Parser Category
+category = do
+    title <- hspace *> char '[' *> some (noneOf "]") <* char ']' <* hspace <* optional newline
+    items <- many item
+    return $ Category (norm title) items
+
+item :: Parser Item
+item = do
+    first <- some (noneOf "\n|")
+    second <- optional (char '|') *> many (noneOf "\n") <* newline
+    return $ Item (norm first) (norm second)
+
+metadata :: Parser Result
 metadata = do
     void $ string ">>" <* hspace
     key <- some $ noneOf ":"
@@ -59,7 +79,7 @@ metadata = do
     value <- some $ word <* hspace
     return $ Recipe [(norm key, unwords value)] []
 
-step :: Parser Recipe
+step :: Parser Result
 step = do
     content <- some $ (ingredient <|> cookware <|> timer <|> text)
     return $ Recipe [] [content]
