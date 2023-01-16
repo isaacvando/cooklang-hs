@@ -1,4 +1,4 @@
--- Copyright 2022 Isaac Van Doren
+-- Copyright 2023 Isaac Van Doren
 
 module Cook (Result(..), Content(..), Category(..), Item(..), Step, Metadata, parseCook) where
 
@@ -19,17 +19,13 @@ data Content = Text String
     | Cookware String String            -- label quantity
     deriving (Show, Eq)
 
-data Item = Item String String deriving (Show, Eq)
-data Category = Category String [Item] deriving (Show, Eq)
+data Item = Item String String
+    deriving (Show, Eq)
+data Category = Category String [Item] 
+    deriving (Show, Eq)
 
 data Result = Recipe [Metadata] [Step] | Grouping [Category]
     deriving (Show, Eq)
-
-instance Semigroup Result where
-    (Recipe m s) <> (Recipe m' s') = Recipe (m ++ m') (s ++ s')
-instance Monoid Result where
-    mempty = Recipe [] []
-
 
 parseCook :: String -> Either String Result
 parseCook input = case parse cookFile "" (simplify input) of
@@ -47,14 +43,22 @@ simplify = inlineComments . blockComments
         blockComments :: String -> String
         blockComments ('[':'-':xs) = blockComments (consume xs)
             where 
-                consume ('-':']':xs) = xs
-                consume (_:xs) = consume xs
+                consume ('-':']':ys) = ys
+                consume (_:ys) = consume ys
                 consume "" = ""
         blockComments (x:xs) = x : blockComments xs
         blockComments "" = ""
 
 cookFile :: Parser Result
-cookFile = grouping <|> fmap mconcat (space *> many (try metadata <* space <|> step <* space))
+cookFile = grouping <|> recipe
+
+recipe :: Parser Result
+recipe = do
+    pieces <- space *> many (metadata <* space <|> step <* space)
+    return $ foldr go (Recipe [] []) pieces
+    where 
+        go (Recipe m s) (Recipe m' s') = Recipe (m ++ m') (s ++ s')
+        go x y = error $ "Not expecting " ++ show x ++ " and " ++ show y ++ " in recipe parser."
 
 grouping :: Parser Result
 grouping = Grouping <$> some (category <* many newline)

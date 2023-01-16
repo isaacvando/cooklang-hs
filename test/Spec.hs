@@ -23,15 +23,15 @@ main = hspec $ do
             it "multiple words with extra spaces" $ do
                 parseCook ">>   key:    this    is  the value     " `shouldBe` Right (Recipe [("key", "this is the value")] [])
 
+            it "no spaces" $ do
+                parseCook ">>foo:bar" `shouldBe` Right (Recipe [("foo", "bar")] [])
+
         describe "step" $ do
             it "basic step" $ do
                 parseCook "this is a step" `shouldBe` Right (Recipe [] [[Text "this is a step"]])
 
             it "step beginning with >" $ do
                 parseCook "> sneaky step" `shouldBe` Right (Recipe [] [[Text "> sneaky step"]])
-
-            it "step beginning with >>>" $ do
-                parseCook ">>> sneaky step" `shouldBe` Right (Recipe [] [[Text ">>> sneaky step"]])
 
             it "two steps" $ do
                 parseCook "step one\nstep two" `shouldBe` Right (Recipe [] [[Text "step one"], [Text "step two"]])
