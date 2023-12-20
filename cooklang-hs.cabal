@@ -2,12 +2,16 @@ cabal-version: 2.4
 name:          cooklang-hs
 version:       0.1.0.0
 synopsis:      Parser for the Cook markup language
-description:   Parser for the Cook markup language
+description:   Parser for the Cook markup language. See more about Cook at https://cooklang.org/
 license:       MIT
 author:        Isaac Van Doren
 maintainer:    69181572+isaacvando@users.noreply.github.com
 copyright:     Isaac Van Doren 2023
 category:      Parsing
+
+source-repository head
+  type:     git
+  location: https://github.com/isaacvando/cooklang-hs.git
 
 executable cooklang-hs
     main-is:          Main.hs

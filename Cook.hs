@@ -27,6 +27,7 @@ data Category = Category String [Item]
 data Result = Recipe [Metadata] [Step] | Grouping [Category]
     deriving (Show, Eq)
 
+-- | Parse a .cook file
 parseCook :: String -> Either String Result
 parseCook input = case parse cookFile "" (simplify input) of
     Left bundle -> Left $ errorBundlePretty bundle
