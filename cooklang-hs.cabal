@@ -1,67 +1,26 @@
-cabal-version: 1.12
+cabal-version:      2.4
+name:               cooklang-hs
+version:            0.1.0.0
+synopsis: Parser for the Cook markup language
+description: Parser for the Cook markup language
+license: MIT
+author:             Isaac Van Doren
+maintainer:         69181572+isaacvando@users.noreply.github.com
 
--- This file has been generated from package.yaml by hpack version 0.35.0.
---
--- see: https://github.com/sol/hpack
+copyright: Isaac Van Doren 2023
+category: Parsing
 
-name:           cooklang-hs
-version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/isaacvando/cooklang-hs#readme>
-homepage:       https://github.com/isaacvando/cooklang-hs#readme
-bug-reports:    https://github.com/isaacvando/cooklang-hs/issues
-author:         Isaac Van Doren
-maintainer:     isaacjvandoren@gmail.com
-copyright:      Isaac Van Doren
-license:        BSD3
-license-file:   LICENSE
-build-type:     Simple
-extra-source-files:
-    README.md
-    CHANGELOG.md
+executable cooklang-hs
+    main-is:          Main.hs
+    other-modules: Cook
+    build-depends:    base ^>=4.16.4.0, megaparsec    
+    hs-source-dirs:   .
+    default-language: Haskell2010
 
-source-repository head
-  type: git
-  location: https://github.com/isaacvando/cooklang-hs
-
-library
-  exposed-modules:
-      Cook
-  other-modules:
-      Paths_cooklang_hs
-  hs-source-dirs:
-      src
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
-  build-depends:
-      base >=4.7 && <5
-    , hspec
-    , megaparsec
-  default-language: Haskell2010
-
-executable cooklang-hs-exe
-  main-is: Main.hs
-  other-modules:
-      Paths_cooklang_hs
-  hs-source-dirs:
-      app
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      base >=4.7 && <5
-    , cooklang-hs
-    , hspec
-    , megaparsec
-  default-language: Haskell2010
-
-test-suite cooklang-hs-test
-  type: exitcode-stdio-1.0
-  main-is: Spec.hs
-  other-modules:
-      Paths_cooklang_hs
-  hs-source-dirs:
-      test
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      base >=4.7 && <5
-    , cooklang-hs
-    , hspec
-    , megaparsec
-  default-language: Haskell2010
+test-suite test-cooklang-hs
+    type:             exitcode-stdio-1.0
+    main-is:          Spec.hs
+    other-modules: Cook
+    build-depends:    base ^>=4.16.4.0, megaparsec, hspec
+    hs-source-dirs:   .
+    default-language: Haskell2010
