@@ -1,18 +1,17 @@
-cabal-version:      2.4
-name:               cooklang-hs
-version:            0.1.0.0
-synopsis: Parser for the Cook markup language
-description: Parser for the Cook markup language
-license: MIT
-author:             Isaac Van Doren
-maintainer:         69181572+isaacvando@users.noreply.github.com
-
-copyright: Isaac Van Doren 2023
-category: Parsing
+cabal-version: 2.4
+name:          cooklang-hs
+version:       0.1.0.0
+synopsis:      Parser for the Cook markup language
+description:   Parser for the Cook markup language
+license:       MIT
+author:        Isaac Van Doren
+maintainer:    69181572+isaacvando@users.noreply.github.com
+copyright:     Isaac Van Doren 2023
+category:      Parsing
 
 executable cooklang-hs
     main-is:          Main.hs
-    other-modules: Cook
+    other-modules:    Cook
     build-depends:    base ^>=4.16.4.0, megaparsec    
     hs-source-dirs:   .
     default-language: Haskell2010
@@ -20,7 +19,7 @@ executable cooklang-hs
 test-suite test-cooklang-hs
     type:             exitcode-stdio-1.0
     main-is:          Spec.hs
-    other-modules: Cook
+    other-modules:    Cook
     build-depends:    base ^>=4.16.4.0, megaparsec, hspec
     hs-source-dirs:   .
     default-language: Haskell2010
