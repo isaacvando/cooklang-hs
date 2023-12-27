@@ -1,6 +1,6 @@
 -- Copyright 2023 Isaac Van Doren
 
-module Cook (Result(..), Content(..), Category(..), Item(..), Step, Metadata, parseCook) where
+module Text.Cook (Result(..), Content(..), Category(..), Item(..), Step, Metadata, parseCook) where
 
 import Text.Megaparsec (optional, some, noneOf, many, errorBundlePretty, parse, MonadParsec(try), (<|>), Parsec)
 import Text.Megaparsec.Char (hspace, char, string, space, digitChar, newline)

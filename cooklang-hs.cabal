@@ -15,7 +15,7 @@ source-repository head
 
 executable cooklang-hs
     main-is:          Main.hs
-    other-modules:    Cook
+    other-modules:    Text.Cook
     build-depends:    base ^>=4.16.4.0
                       , megaparsec >= 9.1.0 && < 9.7   
     hs-source-dirs:   .
@@ -24,7 +24,7 @@ executable cooklang-hs
 test-suite test-cooklang-hs
     type:             exitcode-stdio-1.0
     main-is:          Spec.hs
-    other-modules:    Cook
+    other-modules:    Text.Cook
     build-depends:    base ^>=4.16.4.0
                       , megaparsec
                       , hspec

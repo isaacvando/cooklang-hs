@@ -1,6 +1,6 @@
 module Main (main) where
 
-import Cook
+import Text.Cook ( parseCook )
 
 main :: IO ()
 main = do

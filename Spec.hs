@@ -1,7 +1,7 @@
 -- Copyright 2023 Isaac Van Doren
 
 import Test.Hspec ( hspec, describe, it, shouldBe )
-import Cook ( parseCook, Content(..), Result(..), Category(..), Item(..) )
+import Text.Cook ( parseCook, Content(..), Result(..), Category(..), Item(..) )
 
 
 main :: IO ()
