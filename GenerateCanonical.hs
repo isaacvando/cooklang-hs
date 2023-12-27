@@ -1,4 +1,4 @@
--- Copyright 2022 Isaac Van Doren
+-- Copyright Isaac Van Doren 2022-present
 
 module GenerateCanonical where
 

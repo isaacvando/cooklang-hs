@@ -1,7 +1,7 @@
 # cooklang-hs
 This library allows for parsing `.cook` files in Haskell.
 
-Check out [cooklang](https://cooklang.org/).
+Check out [Cooklang](https://cooklang.org/).
 
 To give it a try on MacOS or Linux do `cabal run cooklang-hs < myRecipe.cook`.
 

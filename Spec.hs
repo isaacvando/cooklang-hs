@@ -1,4 +1,4 @@
--- Copyright 2023 Isaac Van Doren
+-- Copyright Isaac Van Doren 2022-present
 
 import Test.Hspec ( hspec, describe, it, shouldBe )
 import Text.Cook ( parseCook, Content(..), Result(..), Category(..), Item(..) )
